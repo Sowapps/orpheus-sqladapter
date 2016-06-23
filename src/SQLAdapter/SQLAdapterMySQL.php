@@ -6,7 +6,7 @@ namespace Orpheus\SQLAdapter;
  * 
  * This class is the sql adapter for MySQL.
  */
-class SQLAdapter_MySQL extends SQLAdapter {
+class SQLAdapterMySQL extends SQLAdapter {
 	
 	//! Defaults for selecting
 	protected static $selectDefaults = array(
