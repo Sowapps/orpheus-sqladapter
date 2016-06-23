@@ -12,7 +12,6 @@ use Orpheus\SQLAdapter\Exception\SQLException;
  */
 abstract class SQLAdapter {
 	
-	
 	protected $IDFIELD = 'id';
 	
 	protected $pdo;
@@ -436,7 +435,11 @@ abstract class SQLAdapter {
 		if( empty($DBS[$instance]) ) {
 			throw new Exception("Adapter unable to connect to the database.");
 		}
-		$adapterClass = 'SQLAdapter_'.$DBS[$instance]['driver'];
+		if( empty(static::$driverAdapters[$DBS[$instance]['driver']]) ) {
+			throw new Exception("Adapter not found for driver {$DBS[$instance]['driver']}.");
+		}
+// 		$adapterClass = 'SQLAdapter'.$DBS[$instance]['driver'];
+		$adapterClass = static::$driverAdapters[$DBS[$instance]['driver']];
 		// $instance is prepareInstance() name of instance and $instance is the real one
 		self::$instances[$instance] = new $adapterClass($instance, $DBS[$instance]);
 // 		self::$instances[$instance] = new $adapterClass($instance);
@@ -445,6 +448,13 @@ abstract class SQLAdapter {
 			self::$instances[$instance] = &self::$instances[$instance];
 		}
 	}
+	
+	protected static $driverAdapters = array(
+		'mysql'	=> 'SQLAdapterMySQL',
+		'mssql'	=> 'SQLAdapterMSSQL',
+		'pgsql'	=> 'SQLAdapterPgSQL',
+	);
+	
 }
 
 // includePath(LIBSDIR.'sqladapter/');
