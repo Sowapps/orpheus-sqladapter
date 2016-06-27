@@ -1,6 +1,8 @@
 <?php
 namespace Orpheus\SQLAdapter;
 
+use PDO;
+
 /**
  * The MYSQL Adapter class
  * 

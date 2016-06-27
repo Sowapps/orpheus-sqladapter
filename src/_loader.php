@@ -8,6 +8,6 @@ use Orpheus\SQLAdapter\SQLAdapter;
 
 require_once '_pdo.php';
 
-SQLAdapter::registerAdapter('mysql', 'Orpheus\SQLAdapter\SQLAdapterMySQL');
-SQLAdapter::registerAdapter('mssql', 'Orpheus\SQLAdapter\SQLAdapterMSSQL');
-SQLAdapter::registerAdapter('pgsql', 'Orpheus\SQLAdapter\SQLAdapterPGSQL');
+// SQLAdapter::registerAdapter('mysql', 'Orpheus\SQLAdapter\SQLAdapterMySQL');
+// SQLAdapter::registerAdapter('mssql', 'Orpheus\SQLAdapter\SQLAdapterMSSQL');
+// SQLAdapter::registerAdapter('pgsql', 'Orpheus\SQLAdapter\SQLAdapterPGSQL');

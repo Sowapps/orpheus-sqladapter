@@ -5,6 +5,7 @@ use Orpheus\Config\Config;
 use Orpheus\Config\IniConfig;
 use Orpheus\Cache\APCache;
 use Orpheus\SQLAdapter\Exception\SQLException;
+use Orpheus;
 
 /** The main SQL Adapter class
 
@@ -74,7 +75,11 @@ abstract class SQLAdapter {
 		return static::$instances[$name];
 	}
 	
-	protected static $adapters = array();
+	protected static $adapters = array(
+		'mysql'	=> 'Orpheus\SQLAdapter\SQLAdapterMySQL',
+		'mssql'	=> 'Orpheus\SQLAdapter\SQLAdapterMSSQL',
+		'pgsql'	=> 'Orpheus\SQLAdapter\SQLAdapterPgSQL',
+	);
 	
 	public static function registerAdapter($driver, $class) {
 		static::$adapters[$driver] = $class;
@@ -436,11 +441,11 @@ abstract class SQLAdapter {
 		if( empty($DBS[$instance]) ) {
 			throw new Exception("Adapter unable to connect to the database.");
 		}
-		if( empty(static::$driverAdapters[$DBS[$instance]['driver']]) ) {
+		if( empty(static::$adapters[$DBS[$instance]['driver']]) ) {
 			throw new Exception("Adapter not found for driver {$DBS[$instance]['driver']}.");
 		}
 // 		$adapterClass = 'SQLAdapter'.$DBS[$instance]['driver'];
-		$adapterClass = static::$driverAdapters[$DBS[$instance]['driver']];
+		$adapterClass = static::$adapters[$DBS[$instance]['driver']];
 		// $instance is prepareInstance() name of instance and $instance is the real one
 		self::$instances[$instance] = new $adapterClass($instance, $DBS[$instance]);
 // 		self::$instances[$instance] = new $adapterClass($instance);
@@ -449,12 +454,6 @@ abstract class SQLAdapter {
 			self::$instances[$instance] = &self::$instances[$instance];
 		}
 	}
-	
-	protected static $driverAdapters = array(
-		'mysql'	=> 'SQLAdapterMySQL',
-		'mssql'	=> 'SQLAdapterMSSQL',
-		'pgsql'	=> 'SQLAdapterPgSQL',
-	);
 	
 }
 
