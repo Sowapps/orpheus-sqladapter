@@ -17,7 +17,6 @@
 	},
 	"require" : {
 		"orpheus/orpheus-core" : "dev-master",
-		"orpheus/orpheus-hook" : "dev-master",
 		"orpheus/orpheus-cache" : "dev-master"
 	},
 	"type" : "library",
