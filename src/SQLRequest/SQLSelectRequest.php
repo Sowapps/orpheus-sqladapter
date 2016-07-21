@@ -59,7 +59,7 @@ class SQLSelectRequest extends SQLRequest {
 	 * Set/Get the having condition
 	 * 
 	 * @param string $condition
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest|\Orpheus\SQLRequest\string
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
 	 */
 	public function having($condition=null) {
 		$having = $this->get('having', array());
