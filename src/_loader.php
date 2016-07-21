@@ -6,8 +6,9 @@ use Orpheus\SQLAdapter\SQLAdapter;
  * SQL Adapter library brings sql adapters for DBMS
  */
 
-require_once '_pdo.php';
+if( !defined('ORPHEUSPATH') ) {
+	// Do not load in a non-orpheus environment
+	return;
+}
 
-// SQLAdapter::registerAdapter('mysql', 'Orpheus\SQLAdapter\SQLAdapterMySQL');
-// SQLAdapter::registerAdapter('mssql', 'Orpheus\SQLAdapter\SQLAdapterMSSQL');
-// SQLAdapter::registerAdapter('pgsql', 'Orpheus\SQLAdapter\SQLAdapterPGSQL');
+require_once '_pdo.php';
