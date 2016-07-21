@@ -29,46 +29,103 @@ abstract class SQLRequest {
 		$this->class	= $class;
 	}
 	
+	/**
+	 * Get the SQL Adapter
+	 * 
+	 * @return \Orpheus\SQLAdapter\SQLAdapter
+	 */
 	public function getSQLAdapter() {
 		return $this->sqlAdapter;
 	}
 	
-	public function setSQLAdapter($sqlAdapter) {
-		$this->sqlAdapter	= $sqlAdapter;
+	/**
+	 * Set the SQL Adapter
+	 * 
+	 * @param \Orpheus\SQLAdapter\SQLAdapter $sqlAdapter
+	 */
+	public function setSQLAdapter(SQLAdapter $sqlAdapter) {
+		$this->sqlAdapter = $sqlAdapter;
 	}
 	
+	/**
+	 * Set the ID field
+	 * 
+	 * @param string $idField
+	 */
 	public function setIDField($idField) {
-		$this->idField	= $idField;
+		$this->idField = $idField;
 	}
 	
+	/**
+	 * Set a parameter for this query
+	 * 
+	 * @param string $parameter
+	 * @param mixed $value
+	 * @return \Orpheus\SQLRequest\SQLRequest
+	 */
 	protected function set($parameter, $value) {
-		$this->parameters[$parameter]	= $value;
+		$this->parameters[$parameter] = $value;
 		return $this;
 	}
 	
+	/**
+	 * Get a parameter for this query
+	 * 
+	 * @param string $parameter
+	 * @param mixed $default
+	 * @return mixed
+	 */
 	protected function get($parameter, $default=null) {
 		return isset($this->parameters[$parameter]) ? $this->parameters[$parameter] : $default;
 	}
-	
+
+
+	/**
+	 * Set/Get a parameter for this query
+	 *
+	 * @param string $parameter
+	 * @param mixed $value
+	 * @return mixed
+	 * 
+	 * If there is a value (non-null), we set it or we get it
+	 */
 	protected function sget($parameter, $value=null) {
 		return $value === null ? $this->get($parameter) : $this->set($parameter, $value);
 	}
 	
+	/**
+	 * Set/Get the table parameter
+	 * 
+	 * @param string $table If null, we get it
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 */
 	public function from($table=null) {
 		return $this->sget('table', $table);
 	}
 	
+	/**
+	 * Set/Get the ouput parameter
+	 * 
+	 * @param string $table If null, we get it
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 */
 	public function output($output=null) {
 		return $this->sget('output', $output);
 	}
 
+	/**
+	 * Get the query as string
+	 * 
+	 * @throws Exception
+	 * @return string
+	 */
 	public function getQuery() {
 		$output	= $this->get('output');
 		
 		try  {
 			$this->set('output', SQLAdapter::SQLQUERY);
 			$result = $this->run();
-		} catch( Excetion $e ) {
+		} catch( \Exception $e ) {
 			
 		}
 		
@@ -81,20 +138,37 @@ abstract class SQLRequest {
 		return $result;
 	}
 	
+	/**
+	 * Run the query and return results
+	 */
 	protected abstract function run();
 	
+	/**
+	 * Escape an SQL identifier using SQL Adapter
+	 * 
+	 * @param string $identifier
+	 * @return string
+	 */
 	public function escapeIdentifier($identifier) {
 		return $this->sqlAdapter->escapeIdentifier($identifier);
 	}
-	
+
+	/**
+	 * Escape an SQL value using SQL Adapter
+	 *
+	 * @param string $identifier
+	 * @return string
+	 */
 	public function escapeValue($value) {
 		return $this->sqlAdapter->escapeValue($value);
 	}
 	
 	/**
+	 * Create a select request
 	 * 
-	 * @param string $sqlAdapter
-	 * @param string $idField
+	 * @param \Orpheus\SQLAdapter\SQLAdapter $sqlAdapter
+	 * @param string $idField The ID field
+	 * @param string $class The class used to instanciate entries
 	 * @return SQLSelectRequest
 	 */
 	public static function select($sqlAdapter=null, $idField='id', $class=null) {

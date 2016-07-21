@@ -212,12 +212,12 @@ abstract class SQLAdapter {
 	 * Escape SQL identifiers
 	 * 
 	 * @param string $Identifier The identifier to escape.
-	 * @return The escaped identifier.
+	 * @return string The escaped identifier.
 	 * 
 	 * Escapes the given string as an SQL identifier.
 	 */
-	public function escapeIdentifier($Identifier) {
-		return '"'.$Identifier.'"';
+	public function escapeIdentifier($identifier) {
+		return '"'.$identifier.'"';
 	}
 
 	/** Formats SQL string

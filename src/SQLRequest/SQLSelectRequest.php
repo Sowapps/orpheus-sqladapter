@@ -10,33 +10,81 @@ use Orpheus\SQLAdapter\SQLAdapter;
  */
 class SQLSelectRequest extends SQLRequest {
 	
-	protected $usingCache	= true;
-
+	protected $usingCache = true;
+	
+	/**
+	 * Set the class objects is using cache when getting results
+	 * 
+	 * @param boolean $usingCache
+	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 */
 	public function setUsingCache($usingCache) {
-		$this->usingCache	= $usingCache;
+		$this->usingCache = $usingCache;
 		return $this;
 	}
-
+	
+	/**
+	 * Disable the class objects' cache
+	 * 
+	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @see setUsingCache()
+	 */
 	public function disableCache() {
 		return $this->setUsingCache(false);
 	}
-
+	
+	/**
+	 * Set/Get the field list to get
+	 * 
+	 * @param string|string[] $fields
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 */
 	public function fields($fields=null) {
 		return $this->sget('what', $fields);
 	}
-
-	public function addField($field=null) {
+	
+	/**
+	 * Add a field to to the field list
+	 * 
+	 * @param string $field
+	 * @return \Orpheus\SQLRequest\SQLRequest
+	 * 
+	 * The current field list must be a string
+	 */
+	public function addField($field) {
 		return $this->sget('what', $this->get('what', '*').','.$field);
 	}
-
-	public function having($condition) {
-		$having		= $this->get('having', array());
-		$having[]	= $condition;
-		return $this->sget('having', $having);
+	
+	/**
+	 * Set/Get the having condition
+	 * 
+	 * @param string $condition
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest|\Orpheus\SQLRequest\string
+	 */
+	public function having($condition=null) {
+		$having = $this->get('having', array());
+		if( !$condition ) {
+			return $having;
+		}
+		$having[] = $condition;
+		return $this->set('having', $having);
 	}
-
+	
+	/**
+	 * Set the whereclause
+	 * 
+	 * @param string $condition
+	 * @param string $equality
+	 * @param string $value
+	 * @return \Orpheus\SQLRequest\SQLRequest
+	 * 
+	 * If only $condition is provided, this is used as complete string, e.g where("id = 5")
+	 * If $equality & $value are provided, it uses it with $condition as a field (identifier), e.g where('id', '=', '5')
+	 * where identifier and value are escaped with escapeIdentifier() & escapeValue()
+	 * If $equality is provided but $value is not, $equality is the value and where are using a smart comparator, e.g where('id', '5')
+	 * All examples return the same results. Smart comparator is IN for array values and = for all other.
+	 */
 	public function where($condition, $equality=null, $value=null) {
-// 		debug('SQLSelectRequest::where('.$condition.', '.$equality.', '.$value.')');
 		if( $equality ) {
 			if( !$value ) {
 				$value		= $equality;
@@ -50,50 +98,113 @@ class SQLSelectRequest extends SQLRequest {
 		$where[]	= $condition;
 		return $this->sget('where', $where);
 	}
-
+	
+	/**
+	 * Set/Get the order by filter
+	 * 
+	 * @param string $fields
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 */
 	public function orderby($fields=null) {
 		return $this->sget('orderby', $fields);
 	}
-
-	public function groupby($field) {
+	
+	/**
+	 * Set/Get the group by filter
+	 *
+	 * @param string $field
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 */
+	public function groupby($field=null) {
 		return $this->sget('groupby', $field);
 	}
 
-	public function number($number) {
+	/**
+	 * Set/Get the number of expected result (as limit)
+	 *
+	 * @param int $number
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 */
+	public function number($number=null) {
 		return $this->sget('number', $number);
 	}
-
-	public function fromOffset($offset) {
+	
+	/**
+	 * Set/Get the offset from which we are getting results
+	 *
+	 * @param int $number
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 */
+	public function fromOffset($offset=null) {
 		return $this->sget('offset', $offset);
 	}
-
+	
+	/**
+	 * Add a join condition to this query
+	 * 
+	 * @param string $join
+	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 */
 	public function join($join) {
 		$joins		= $this->get('join', array());
 		$joins[]	= $join;
 		return $this->sget('join', $joins);
 	}
-
+	
+	/**
+	 * Set the output to be an object
+	 * 
+	 * @return object
+	 */
 	public function asObject() {
 // 		debug('SQLAdapter::OBJECT', SQLAdapter::OBJECT);
 		return $this->output(SQLAdapter::OBJECT);
 	}
-
+	
+	/**
+	 * Set the output to be a list of object
+	 *
+	 * @return object[]
+	 */
 	public function asObjectList() {
 		return $this->output(SQLAdapter::ARR_OBJECTS);
 	}
-
-	public function asArrayList() {
-		return $this->output(SQLAdapter::ARR_ASSOC);
-	}
-
+	
+	/**
+	 * Set the output to be an array
+	 *
+	 * @return string[]
+	 */
 	public function asArray() {
 		return $this->output(SQLAdapter::ARR_FIRST);
 	}
+	
 
-	public function exists() {
-		return $this->count(1);
+	/**
+	 * Set the output to be a list of array
+	 *
+	 * @return string[][]
+	 */
+	public function asArrayList() {
+		return $this->output(SQLAdapter::ARR_ASSOC);
 	}
-
+	
+	/**
+	 * Test if the query has any result
+	 * 
+	 * @return boolean
+	 */
+	public function exists() {
+		return !!$this->count(1);
+	}
+	
+	/**
+	 * Count the number of result of this query
+	 * 
+	 * @param int $max The max number where are expecting
+	 * @throws Exception
+	 * @return int
+	 */
 	public function count($max='') {
 		$countKey	= '0rpHeus_Count';
 		$what	= $this->get('what');
@@ -110,7 +221,7 @@ class SQLSelectRequest extends SQLRequest {
 // 			$this->set('output', SQLAdapter::ARR_FIRST);
 			$this->asArray();
 			$result = $this->run();
-		} catch( Excetion $e ) {
+		} catch( \Exception $e ) {
 			
 		}
 		
@@ -131,13 +242,22 @@ class SQLSelectRequest extends SQLRequest {
 	 */
 	protected $fetchLastStatement;
 	protected $fetchIsObject;
+	
+	/**
+	 * Fetch the next result of this query
+	 * 
+	 * @return NULL|mixed
+	 * 
+	 * Query one time the DBMS and fetch result for next calls
+	 * This feature is made for common used else it may have an unexpected behavior
+	 */
 	public function fetch() {
 		if( !$this->fetchLastStatement ) {
 			$this->fetchIsObject = $this->get('output', SQLAdapter::ARR_OBJECTS) === SQLAdapter::ARR_OBJECTS;
 			$this->set('output', SQLAdapter::STATEMENT);
-			$this->fetchLastStatement	= $this->run();
+			$this->fetchLastStatement = $this->run();
 		}
-		$row	= $this->fetchLastStatement->fetch(\PDO::FETCH_ASSOC);
+		$row = $this->fetchLastStatement->fetch(\PDO::FETCH_ASSOC);
 		if( !$row ) {
 			// Last return false, we return null, same effect
 			return null;
@@ -145,18 +265,11 @@ class SQLSelectRequest extends SQLRequest {
 		if( !$this->fetchIsObject ) {
 			return $row;
 		}
-		$class		= $this->class;
+		$class = $this->class;
 		return $class::load($row, true, $this->usingCache);
 	}
 	
 	public function run() {
-// 		if( !$this->instance ) {
-// 			throw new Exception('noAvailableInstance');
-// 		}
-// 		if( $this->class && method_exists($this->class, 'prepareSelectRequest') ) {
-// 			call_user_func($this->class.'::prepareSelectRequest', $this);
-// 		}
-// 		return SQLAdapter::doSelect($this->parameters, $this->instance, $this->idField);
 		$options	= $this->parameters;
 		$onlyOne	= $objects = 0;
 		if( in_array($options['output'], array(SQLAdapter::ARR_OBJECTS, SQLAdapter::OBJECT)) ) {
