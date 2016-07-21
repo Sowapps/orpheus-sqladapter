@@ -60,14 +60,12 @@ class SQLAdapterMSSQL extends SQLAdapter {
 			'output'		=> SQLAdapter::NUMBER,//Number of inserted lines
 	);
 	
-	/** The function to use for SELECT queries
-	 * @param $options The options used to build the query.
-	 * @return Mixed return, depending on the 'output' option.
-	 * @sa http://msdn.microsoft.com/en-us/library/aa259187%28v=sql.80%29.aspx
-	 * @sa SQLAdapter::select()
+	/**
 	 * 
-	 * Using pdo_query(), It parses the query from an array to a SELECT query.
-    */
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::select()
+	 * @see http://msdn.microsoft.com/en-us/library/aa259187%28v=sql.80%29.aspx
+	 */
 	public function select(array $options=array()) {
 		$options += self::$selectDefaults;
 		if( empty($options['table']) ) {
@@ -108,13 +106,12 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		return (!empty($results) && $options['output'] == static::ARR_FIRST) ?  $results[0] : $results;
 	}
 	
-	/** The function to use for UPDATE queries
-	 * @param $options The options used to build the query.
-	 * @return The number of affected rows.
-	 * @sa http://msdn.microsoft.com/en-us/library/ms177523.aspx
+	/**
 	 * 
-	 * Using pdo_query(), It parses the query from an array to a UPDATE query.
-	*/
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::update()
+	 * @see http://msdn.microsoft.com/en-us/library/ms177523.aspx
+	 */
 	public function update(array $options=array()) {
 		$options += self::$updateDefaults;
 		if( empty($options['table']) ) {
@@ -146,48 +143,12 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
-	/** The function to use for DELETE queries
-	 * @param $options The options used to build the query.
-	 * @return The number of deleted rows.
-	 * @sa http://msdn.microsoft.com/en-us/library/ms189835.aspx
+	/**
 	 * 
-	 * It parses the query from an array to a DELETE query.
-	*/
-	public function delete(array $options=array()) {
-		$options += self::$deleteDefaults;
-		if( empty($options['table']) ) {
-			throw new Exception('Empty table option');
-		}
-		$WC = ( !empty($options['where']) ) ? 'WHERE '.$options['where'] : '';
-		if( empty($options['orderby']) ) {
-			$options['orderby'] = $this->IDFIELD; 
-		}
-		$ORDERBY = 'ORDER BY '.$options['orderby'];
-		
-		if( $options['number'] > 0 ) {
-			// ORDER BY is required
-			$LIMIT_WC = ( $options['offset'] > 0 ) ? $options['offset'].' AND '.($options['offset']+$options['number']) : '<= '.$options['number'];
-			$QUERY = "WITH a AS ( SELECT *, row_number() OVER ({$ORDERBY}) AS rownum FROM {$options['table']} {$WC} )
-				DELETE FROM a WHERE a.rownum {$LIMIT_WC};";
-			
-		} else {
-			$QUERY = "DELETE FROM {$options['table']} {$WC} {$ORDERBY};";
-		}
-		
-		if( $options['output'] == static::SQLQUERY ) {
-			return $QUERY;
-		}
-		return $this->query($QUERY, PDOEXEC);
-	}
-	
-	/** The function to use for INSERT queries
-	 * @param $options The options used to build the query.
-	 * @return The number of inserted rows.
-	 * @sa http://msdn.microsoft.com/en-us/library/ms174335.aspx
-	 * 
-	 * It parses the query from an array to a INSERT query.
-	 * Accept only the String syntax for what option.
-	*/
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::insert()
+	 * @see http://msdn.microsoft.com/en-us/library/ms174335.aspx
+	 */
 	public function insert(array $options=array()) {
 		$options += self::$insertDefaults;
 		if( empty($options['table']) ) {
@@ -227,14 +188,40 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
-	/** The function to get the last inserted ID
-	 * @param $table The table to get the last inserted id.
-	 * @return The last inserted id value.
+	/**
 	 * 
-	 * It requires a successful call of insert() !
-	*/
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::delete()
+	 * @see http://msdn.microsoft.com/en-us/library/ms189835.aspx
+	 */
+	public function delete(array $options=array()) {
+		$options += self::$deleteDefaults;
+		if( empty($options['table']) ) {
+			throw new Exception('Empty table option');
+		}
+		$WC = ( !empty($options['where']) ) ? 'WHERE '.$options['where'] : '';
+		if( empty($options['orderby']) ) {
+			$options['orderby'] = $this->IDFIELD; 
+		}
+		$ORDERBY = 'ORDER BY '.$options['orderby'];
+		
+		if( $options['number'] > 0 ) {
+			// ORDER BY is required
+			$LIMIT_WC = ( $options['offset'] > 0 ) ? $options['offset'].' AND '.($options['offset']+$options['number']) : '<= '.$options['number'];
+			$QUERY = "WITH a AS ( SELECT *, row_number() OVER ({$ORDERBY}) AS rownum FROM {$options['table']} {$WC} )
+				DELETE FROM a WHERE a.rownum {$LIMIT_WC};";
+			
+		} else {
+			$QUERY = "DELETE FROM {$options['table']} {$WC} {$ORDERBY};";
+		}
+		
+		if( $options['output'] == static::SQLQUERY ) {
+			return $QUERY;
+		}
+		return $this->query($QUERY, PDOEXEC);
+	}
+
  	public function lastID($table) {
-//  		return $this->lastID;
 		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);
 		return $r['LAST_ID'];
 	}

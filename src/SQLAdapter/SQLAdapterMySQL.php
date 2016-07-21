@@ -63,11 +63,12 @@ class SQLAdapterMySQL extends SQLAdapter {
 		$this->instance->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
 	}
 	
-	/** The function to use for SELECT queries
-	 * @param $options The options used to build the query.
-	 * @return Mixed return, depending on the 'output' option.
-	 * @sa http://dev.mysql.com/doc/refman/5.0/en/select.html
-	 * @sa SQLAdapter::select()
+	/**
+	 * Select something from database
+	 * 
+	 * @param array $options The options used to build the query.
+	 * @return mixed Mixed return, depending on the 'output' option.
+	 * @see http://dev.mysql.com/doc/refman/5.0/en/select.html
 	 * 
 	 * Using pdo_query(), It parses the query from an array to a SELECT query.
     */
@@ -108,10 +109,13 @@ class SQLAdapterMySQL extends SQLAdapter {
 // 		return (!empty($results) && $options['output'] == static::ARR_ASSOC && $options['number'] == 1) ? $results[0] : $results;
 	}
 	
-	/** The function to use for UPDATE queries
-	 * @param $options The options used to build the query.
-	 * @return The number of affected rows.
-	 * @sa http://dev.mysql.com/doc/refman/5.0/en/update.html
+	/**
+	 * Update something in database
+	 * 
+	 * @param array $options The options used to build the query.
+	 * @return int The number of affected rows.
+	 * @see http://dev.mysql.com/doc/refman/5.0/en/update.html
+	 * 
 	 * Using pdo_query(), It parses the query from an array to a UPDATE query.
 	*/
 	public function update(array $options=array()) {
@@ -148,9 +152,11 @@ class SQLAdapterMySQL extends SQLAdapter {
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
-	/** The function to use for INSERT queries
-	 * @param $options The options used to build the query.
-	 * @return The number of inserted rows.
+	/**
+	 * Insert something in database
+	 * 
+	 * @param array $options The options used to build the query.
+	 * @return int The number of inserted rows.
 	 * 
 	 * It parses the query from an array to a INSERT query.
 	 * Accept only the String syntax for what option.
@@ -198,9 +204,12 @@ class SQLAdapterMySQL extends SQLAdapter {
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
-	/** The function to use for DELETE queries
-	 * @param $options The options used to build the query.
-	 * @return The number of deleted rows.
+	/**
+	 * Delete something in database
+	 * 
+	 * @param array $options The options used to build the query.
+	 * @return int The number of deleted rows.
+	 * 
 	 * It parses the query from an array to a DELETE query.
 	*/
 	public function delete(array $options=array()) {
@@ -225,21 +234,23 @@ class SQLAdapterMySQL extends SQLAdapter {
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
-	/** The function to get the last inserted ID
-
+	/**
+	 * Get the last inserted ID
+	 * 
 	 * @param $table The table to get the last inserted id.
-	 * @param $idfield The field id name.
 	 * @return The last inserted id value.
 	 * 
 	 * It requires a successful call of insert() !
 	*/
 	public function lastID($table) {
 // 	public function lastID($table, $idfield='id') {
-		return $this->query("SELECT LAST_INSERT_ID();", PDOFETCHFIRSTCOL);
+		return $this->query('SELECT LAST_INSERT_ID();', PDOFETCHFIRSTCOL);
 	}
 
-	/** Escape SQL identifiers
-	 * @param $Identifier The identifier to escape.
+	/**
+	 * Escape SQL identifiers
+	 * 
+	 * @param $key The identifier to escape.
 	 * @return The escaped identifier.
 	 * 
 	 * Escape the given string as an SQL identifier.
@@ -248,6 +259,11 @@ class SQLAdapterMySQL extends SQLAdapter {
 		return '`'.$key.'`';
 	}
 	
+	/**
+	 * Get the driven string
+	 * 
+	 * @return string
+	 */
 	public static function getDriver() {
 		return 'mysql';
 	}
