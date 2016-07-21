@@ -246,17 +246,9 @@ class SQLAdapterMySQL extends SQLAdapter {
 // 	public function lastID($table, $idfield='id') {
 		return $this->query('SELECT LAST_INSERT_ID();', PDOFETCHFIRSTCOL);
 	}
-
-	/**
-	 * Escape SQL identifiers
-	 * 
-	 * @param $key The identifier to escape.
-	 * @return The escaped identifier.
-	 * 
-	 * Escape the given string as an SQL identifier.
-	*/
-	public function escapeIdentifier($key) {
-		return '`'.$key.'`';
+	
+	public function escapeIdentifier($identifier) {
+		return '`'.$identifier.'`';
 	}
 	
 	/**
