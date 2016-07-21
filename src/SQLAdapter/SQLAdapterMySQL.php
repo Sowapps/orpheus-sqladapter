@@ -237,7 +237,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	/**
 	 * Get the last inserted ID
 	 * 
-	 * @param $table The table to get the last inserted id.
+	 * @param string $table The table to get the last inserted id.
 	 * @return The last inserted id value.
 	 * 
 	 * It requires a successful call of insert() !
