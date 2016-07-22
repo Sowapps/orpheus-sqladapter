@@ -10,6 +10,11 @@ use Orpheus\SQLAdapter\SQLAdapter;
  */
 class SQLSelectRequest extends SQLRequest {
 	
+	/**
+	 * Is using cache for results
+	 * 
+	 * @var boolean
+	 */
 	protected $usingCache = true;
 	
 	/**
@@ -132,7 +137,7 @@ class SQLSelectRequest extends SQLRequest {
 	/**
 	 * Set/Get the offset from which we are getting results
 	 *
-	 * @param int $number
+	 * @param int $offset
 	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
 	 */
 	public function fromOffset($offset=null) {
@@ -238,9 +243,17 @@ class SQLSelectRequest extends SQLRequest {
 	}
 
 	/**
+	 * The current fetch statement
+	 * 
 	 * @var PDOStatement
 	 */
 	protected $fetchLastStatement;
+	
+	/**
+	 * The current fetch is expecting an object
+	 * 
+	 * @var boolean
+	 */
 	protected $fetchIsObject;
 	
 	/**
@@ -269,6 +282,11 @@ class SQLSelectRequest extends SQLRequest {
 		return $class::load($row, true, $this->usingCache);
 	}
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLRequest\SQLRequest::run()
+	 */
 	public function run() {
 		$options	= $this->parameters;
 		$onlyOne	= $objects = 0;
