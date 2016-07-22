@@ -1,4 +1,8 @@
 <?php
+/**
+ * SQLRequest
+ */
+
 namespace Orpheus\SQLRequest;
 
 use Orpheus\SQLAdapter\SQLAdapter;
@@ -10,9 +14,25 @@ use Orpheus\SQLAdapter\SQLAdapter;
  */
 abstract class SQLRequest {
 	
-	/* @var SQLAdapter $sqlAdapter */
+	/**
+	 * The SQL Adapter
+	 * 
+	 * @var \Orpheus\SQLAdapter\SQLAdapter
+	 */
 	protected $sqlAdapter;
+	
+	/**
+	 * The ID field
+	 * 
+	 * @var string
+	 */
 	protected $idField;
+	
+	/**
+	 * The class
+	 * 
+	 * @var string
+	 */
 	protected $class;
 	
 	/**
@@ -22,7 +42,13 @@ abstract class SQLRequest {
 	 */
 	protected $parameters;
 	
-// 	protected function __construct($sqlAdapter, $idField, $class=null) {
+	/**
+	 * Constructor
+	 * 
+	 * @param \Orpheus\SQLAdapter\SQLAdapter $sqlAdapter
+	 * @param string $idField
+	 * @param string $class
+	 */
 	protected function __construct($sqlAdapter, $idField, $class=null) {
 		$this->setSQLAdapter($sqlAdapter);
 		$this->setIDField($idField);
@@ -96,7 +122,7 @@ abstract class SQLRequest {
 	/**
 	 * Set/Get the table parameter
 	 * 
-	 * @param string $table If null, we get it
+	 * @param string $table
 	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
 	 */
 	public function from($table=null) {
@@ -106,7 +132,7 @@ abstract class SQLRequest {
 	/**
 	 * Set/Get the ouput parameter
 	 * 
-	 * @param string $table If null, we get it
+	 * @param string $output
 	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
 	 */
 	public function output($output=null) {
@@ -156,7 +182,7 @@ abstract class SQLRequest {
 	/**
 	 * Escape an SQL value using SQL Adapter
 	 *
-	 * @param string $identifier
+	 * @param string $value
 	 * @return string
 	 */
 	public function escapeValue($value) {

@@ -1,4 +1,8 @@
 <?php
+/**
+ * SQLSelectRequest
+ */
+
 namespace Orpheus\SQLRequest;
 
 use Orpheus\SQLAdapter\SQLAdapter;
