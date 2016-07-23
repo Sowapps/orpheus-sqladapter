@@ -293,8 +293,8 @@ abstract class SQLAdapter {
 	/**
 	 * Escape SQL identifiers
 	 * 
-	 * @param string $identifier The identifier to escape.
-	 * @return string The escaped identifier.
+	 * @param string $identifier The identifier to escape
+	 * @return string The escaped identifier
 	 * 
 	 * Escapes the given string as an SQL identifier.
 	 */

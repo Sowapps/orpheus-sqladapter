@@ -78,6 +78,8 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 * 
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::connect()
+	 * 
+	 * @param array $config
 	 */
 	protected function connect(array $config) {
 		$this->instance = new PDO(
@@ -276,6 +278,8 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 * 
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::escapeIdentifier()
+	 * 
+	 * @param string $identifier The identifier to escape
 	 */
 	public function escapeIdentifier($identifier) {
 		return '`'.$identifier.'`';

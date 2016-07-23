@@ -75,6 +75,11 @@ class SQLException extends \Exception {
 		return $this->getMessage();
 	}
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see Exception::__toString()
+	 */
 	public function __toString() {
 		try {
 			return $this->getText();
