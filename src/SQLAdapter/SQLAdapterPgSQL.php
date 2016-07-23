@@ -1,4 +1,8 @@
 <?php
+/**
+ * SQLAdapterPgSQL
+ */
+
 namespace Orpheus\SQLAdapter;
 
 use PDO;
@@ -9,8 +13,12 @@ use PDO;
  * This class is the sql adapter for MySQL.
 */
 class SQLAdapterPgSQL extends SQLAdapter {
-	
-	//! Defaults for selecting
+
+	/**
+	 * Select defaults options
+	 *
+	 * @var array
+	 */
 	protected static $selectDefaults = array(
 			'what'			=> '*',//* => All fields
 			'where'			=> '',//Additionnal Whereclause
@@ -19,22 +27,34 @@ class SQLAdapterPgSQL extends SQLAdapter {
 			'offset'		=> 0,//0 => The start
 			'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
 	);
-	
-	//! Defaults for updating
+
+	/**
+	 * Update defaults options
+	 *
+	 * @var array
+	 */
 	protected static $updateDefaults = array(
 			'only'			=> false,//false => Do not ignore descendants
 			'where'			=> '',//Additionnal Whereclause
 			'output'		=> SQLAdapter::NUMBER,//Number of updated lines
 	);
-	
-	//! Defaults for deleting
+
+	/**
+	 * Delete defaults options
+	 *
+	 * @var array
+	 */
 	protected static $deleteDefaults = array(
 			'only'			=> false,//false => Do not ignore descendants
 			'where'			=> '',//Additionnal Whereclause
 			'output'		=> SQLAdapter::NUMBER,//Number of deleted lines
 	);
-	
-	//! Defaults for inserting
+
+	/**
+	 * Insert defaults options
+	 *
+	 * @var array
+	 */
 	protected static $insertDefaults = array(
 			'lowpriority'	=> false,//false => Not low priority
 			'delayed'		=> false,//false => Not delayed
@@ -43,6 +63,11 @@ class SQLAdapterPgSQL extends SQLAdapter {
 			'output'		=> SQLAdapter::NUMBER,//Number of inserted lines
 	);
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::select()
+	 */
 	public function select(array $options=array()) {
 		$options += self::$selectDefaults;
 		if( empty($options['table']) ) {
@@ -70,6 +95,11 @@ class SQLAdapterPgSQL extends SQLAdapter {
 		return (!empty($results) && $options['output'] == static::ARR_FIRST) ?  $results[0] : $results;
 	}
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::update()
+	 */
 	public function update(array $options=array()) {
 		$options += self::$updateDefaults;
 		if( empty($options['table']) ) {
@@ -90,6 +120,11 @@ class SQLAdapterPgSQL extends SQLAdapter {
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::delete()
+	 */
 	public function delete(array $options=array()) {
 		$options += self::$deleteDefaults;
 		if( empty($options['table']) ) {
@@ -106,6 +141,11 @@ class SQLAdapterPgSQL extends SQLAdapter {
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::insert()
+	 */
 	public function insert(array $options=array()) {
 		$options += self::$insertDefaults;
 		if( empty($options['table']) ) {
@@ -142,6 +182,11 @@ class SQLAdapterPgSQL extends SQLAdapter {
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::lastID()
+	 */
 	public function lastID($table) {
 		return $this->query("SELECT currval('{$table}_{$this->IDFIELD}_seq'::regclass)", PDOFETCHFIRSTCOL);
 	}

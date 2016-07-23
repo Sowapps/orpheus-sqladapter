@@ -1,4 +1,8 @@
 <?php
+/**
+ * SQLAdapterMSSQL
+ */
+
 namespace Orpheus\SQLAdapter;
 
 use PDO;
@@ -13,9 +17,18 @@ use PDO;
  */
 class SQLAdapterMSSQL extends SQLAdapter {
 	
+	/**
+	 * Last ID
+	 * 
+	 * @var integer
+	 */
 	protected $lastID = 0;
-	
-	//! Defaults for selecting
+
+	/**
+	 * Select defaults options
+	 *
+	 * @var array
+	 */
 	protected static $selectDefaults = array(
 			'what'			=> '*',//* => All fields
 			'where'			=> '',//Additionnal Whereclause
@@ -25,8 +38,12 @@ class SQLAdapterMSSQL extends SQLAdapter {
 			'offset'		=> 0,//0 => The start
 			'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
 	);
-	
-	//! Defaults for updating
+
+	/**
+	 * Update defaults options
+	 *
+	 * @var array
+	 */
 	protected static $updateDefaults = array(
 			'lowpriority'	=> false,//false => Not low priority
 			'ignore'		=> false,//false => Not ignore errors
@@ -37,8 +54,12 @@ class SQLAdapterMSSQL extends SQLAdapter {
 			'offset'		=> 0,//0 => The start
 			'output'		=> SQLAdapter::NUMBER,//Number of updated lines
 	);
-	
-	//! Defaults for deleting
+
+	/**
+	 * Delete defaults options
+	 *
+	 * @var array
+	 */
 	protected static $deleteDefaults = array(
 			'lowpriority'	=> false,//false => Not low priority
 			'quick'			=> false,//false => Not merge index leaves
@@ -50,8 +71,12 @@ class SQLAdapterMSSQL extends SQLAdapter {
 			'offset'		=> 0,//0 => The start
 			'output'		=> SQLAdapter::NUMBER,//Number of deleted lines
 	);
-	
-	//! Defaults for inserting
+
+	/**
+	 * Insert defaults options
+	 *
+	 * @var array
+	 */
 	protected static $insertDefaults = array(
 			'lowpriority'	=> false,//false => Not low priority
 			'delayed'		=> false,//false => Not delayed
@@ -220,7 +245,12 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		}
 		return $this->query($QUERY, PDOEXEC);
 	}
-
+	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::lastID()
+	 */
  	public function lastID($table) {
 		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);
 		return $r['LAST_ID'];

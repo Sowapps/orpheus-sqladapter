@@ -1,5 +1,4 @@
 <?php
-use Orpheus\SQLAdapter\SQLAdapter;
 /**
  * SQL Adapter Library
  * 

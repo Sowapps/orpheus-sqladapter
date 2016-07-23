@@ -1,4 +1,8 @@
 <?php
+/**
+ * SQLAdapterMySQL
+ */
+
 namespace Orpheus\SQLAdapter;
 
 use PDO;
@@ -9,8 +13,12 @@ use PDO;
  * This class is the sql adapter for MySQL.
  */
 class SQLAdapterMySQL extends SQLAdapter {
-	
-	//! Defaults for selecting
+
+	/**
+	 * Select defaults options
+	 *
+	 * @var array
+	 */
 	protected static $selectDefaults = array(
 			'what'			=> '',//table.* => All fields
 			'join'			=> '',// No join
@@ -21,8 +29,12 @@ class SQLAdapterMySQL extends SQLAdapter {
 			'offset'		=> 0,//0 => The start
 			'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
 	);
-	
-	//! Defaults for updating
+
+	/**
+	 * Update defaults options
+	 *
+	 * @var array
+	 */
 	protected static $updateDefaults = array(
 			'lowpriority'	=> false,//false => Not low priority
 			'ignore'		=> false,//false => Not ignore errors
@@ -32,8 +44,12 @@ class SQLAdapterMySQL extends SQLAdapter {
 			'offset'		=> 0,//0 => The start
 			'output'		=> SQLAdapter::NUMBER,//Number of updated lines
 	);
-	
-	//! Defaults for deleting
+
+	/**
+	 * Delete defaults options
+	 *
+	 * @var array
+	 */
 	protected static $deleteDefaults = array(
 			'lowpriority'	=> false,//false => Not low priority
 			'quick'			=> false,//false => Not merge index leaves
@@ -44,8 +60,12 @@ class SQLAdapterMySQL extends SQLAdapter {
 			'offset'		=> 0,//0 => The start
 			'output'		=> SQLAdapter::NUMBER,//Number of deleted lines
 	);
-	
-	//! Defaults for inserting
+
+	/**
+	 * Insert defaults options
+	 *
+	 * @var array
+	 */
 	protected static $insertDefaults = array(
 			'lowpriority'	=> false,//false => Not low priority
 			'delayed'		=> false,//false => Not delayed
@@ -54,6 +74,11 @@ class SQLAdapterMySQL extends SQLAdapter {
 			'output'		=> SQLAdapter::NUMBER,//Number of inserted lines
 	);
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::connect()
+	 */
 	protected function connect(array $config) {
 		$this->instance = new PDO(
 			"mysql:dbname={$config['dbname']};host={$config['host']}".(!empty($config['port']) ? ';port='.$config['port'] : ''),
@@ -247,6 +272,11 @@ class SQLAdapterMySQL extends SQLAdapter {
 		return $this->query('SELECT LAST_INSERT_ID();', PDOFETCHFIRSTCOL);
 	}
 	
+	/**
+	 * 
+	 * {@inheritDoc}
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::escapeIdentifier()
+	 */
 	public function escapeIdentifier($identifier) {
 		return '`'.$identifier.'`';
 	}

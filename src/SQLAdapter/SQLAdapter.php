@@ -1,4 +1,8 @@
 <?php
+/**
+ * SQLAdapter
+ */
+
 namespace Orpheus\SQLAdapter;
 
 use Orpheus\Config\Config;
@@ -14,20 +18,46 @@ use Orpheus;
  */
 abstract class SQLAdapter {
 	
+	/**
+	 * The ID field
+	 * 
+	 * @var string
+	 */
 	protected $IDFIELD = 'id';
 	
+	/**
+	 * The PDO instance
+	 * 
+	 * @var \PDO
+	 */
 	protected $pdo;
 	
-	//! Defaults for selecting
+	/**
+	 * Select defaults options
+	 * 
+	 * @var array
+	 */
 	protected static $selectDefaults = array();
 	
-	//! Defaults for updating
+	/**
+	 * Update defaults options
+	 * 
+	 * @var array
+	 */
 	protected static $updateDefaults = array();
-	
-	//! Defaults for deleting
+
+	/**
+	 * Delete defaults options
+	 *
+	 * @var array
+	 */
 	protected static $deleteDefaults = array();
-	
-	//! Defaults for inserting
+
+	/**
+	 * Insert defaults options
+	 *
+	 * @var array
+	 */
 	protected static $insertDefaults = array();
 	
 	//List of outputs for getting list
@@ -60,7 +90,12 @@ abstract class SQLAdapter {
 			static::registerInstance($name, $this);
 		}
 	}
-
+	
+	/**
+	 * All Adapter instances by name
+	 * 
+	 * @var array
+	 */
 	protected static $instances = array();
 	
 	/**
@@ -89,6 +124,11 @@ abstract class SQLAdapter {
 		return static::$instances[$name];
 	}
 	
+	/**
+	 * Store drivers' adapter
+	 * 
+	 * @var array
+	 */
 	protected static $adapters = array(
 		'mysql'	=> 'Orpheus\SQLAdapter\SQLAdapterMySQL',
 		'mssql'	=> 'Orpheus\SQLAdapter\SQLAdapterMSSQL',
@@ -154,6 +194,11 @@ abstract class SQLAdapter {
 	 */
 	protected abstract function connect(array $config);
 	
+	/**
+	 * Configurations
+	 * 
+	 * @var unknown
+	 */
 	protected static $configs;
 	
 	/**

@@ -1,4 +1,8 @@
 <?php
+/**
+ * SQLException
+ */
+
 namespace Orpheus\SQLAdapter\Exception;
 
 /**
@@ -8,27 +12,65 @@ namespace Orpheus\SQLAdapter\Exception;
 */
 class SQLException extends \Exception {
 	
+	/**
+	 * Original exception
+	 * 
+	 * @var \PDOException
+	 */
 	protected $original;
+	
+	/**
+	 * Action in progress while getting this exception
+	 * 
+	 * @var string
+	 */
 	protected $action;
 	
+	/**
+	 * Constructor
+	 * 
+	 * @param string $message
+	 * @param string $action
+	 * @param \PDOException $original
+	 */
 	public function __construct($message=null, $action=null, $original=null) {
 		parent::__construct($message);
 		$this->original	= $original;
 		$this->action	= $action;
 	}
 	
+	/**
+	 * Get the action
+	 * 
+	 * @return string
+	 */
 	public function getAction() {
 		return $this->action;
 	}
 	
+	/**
+	 * Get the original exception
+	 * 
+	 * @return PDOException
+	 */
 	public function getOriginal() {
 		return $this->original;
 	}
 	
+	/**
+	 * Get the exception as report
+	 * 
+	 * @return string
+	 */
 	public function getReport() {
 		return $this->getText();
 	}
-	
+
+	/**
+	 * Get the exception as report
+	 *
+	 * @return string
+	 */
 	public function getText() {
 		return $this->getMessage();
 	}
