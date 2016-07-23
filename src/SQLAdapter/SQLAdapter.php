@@ -247,8 +247,8 @@ abstract class SQLAdapter {
 	/**
 	 * Select something from database
 	 * 
-	 * @param array $options The options used to build the query.
-	 * @return mixed Mixed return, depending on the 'output' option.
+	 * @param array $options The options used to build the query
+	 * @return mixed Mixed return, depending on the 'output' option
     */
 	public abstract function select(array $options=array());
 
@@ -256,32 +256,32 @@ abstract class SQLAdapter {
 	/**
 	 * Update something in database
 	 *
-	 * @param array $options The options used to build the query.
-	 * @return int The number of affected rows.
+	 * @param array $options The options used to build the query
+	 * @return int The number of affected rows
 	 */
 	public abstract function update(array $options=array());
 
 	/**
 	 * Insert something in database
 	 *
-	 * @param array $options The options used to build the query.
-	 * @return int The number of inserted rows.
+	 * @param array $options The options used to build the query
+	 * @return int The number of inserted rows
 	 */
 	public abstract function insert(array $options=array());
 	
 	/**
 	 * Delete something in database
 	 *
-	 * @param array $options The options used to build the query.
-	 * @return int The number of deleted rows.
+	 * @param array $options The options used to build the query
+	 * @return int The number of deleted rows
 	 */
 	public abstract function delete(array $options=array());
 	
 	/**
 	 * Get the last inserted ID
 	 * 
-	 * @param string $table The table to get the last inserted id.
-	 * @return The last inserted id value.
+	 * @param string $table The table to get the last inserted id
+	 * @return The last inserted id value
 	 * 
 	 * It requires a successful call of insert() !
 	 */

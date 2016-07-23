@@ -30,13 +30,13 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $selectDefaults = array(
-			'what'			=> '*',//* => All fields
-			'where'			=> '',//Additionnal Whereclause
-			'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
-			'number'		=> -1,//-1 => All
-			'number_percent'=> false,// false => No Percent option
-			'offset'		=> 0,//0 => The start
-			'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
+		'what'			=> '*',//* => All fields
+		'where'			=> '',//Additionnal Whereclause
+		'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
+		'number'		=> -1,//-1 => All
+		'number_percent'=> false,// false => No Percent option
+		'offset'		=> 0,//0 => The start
+		'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
 	);
 
 	/**
@@ -45,14 +45,14 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $updateDefaults = array(
-			'lowpriority'	=> false,//false => Not low priority
-			'ignore'		=> false,//false => Not ignore errors
-			'where'			=> '',//Additionnal Whereclause
-			'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
-			'number'		=> -1,//-1 => All
-			'number_percent'=> false,// false => No Percent option
-			'offset'		=> 0,//0 => The start
-			'output'		=> SQLAdapter::NUMBER,//Number of updated lines
+		'lowpriority'	=> false,//false => Not low priority
+		'ignore'		=> false,//false => Not ignore errors
+		'where'			=> '',//Additionnal Whereclause
+		'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
+		'number'		=> -1,//-1 => All
+		'number_percent'=> false,// false => No Percent option
+		'offset'		=> 0,//0 => The start
+		'output'		=> SQLAdapter::NUMBER,//Number of updated lines
 	);
 
 	/**
@@ -61,15 +61,15 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $deleteDefaults = array(
-			'lowpriority'	=> false,//false => Not low priority
-			'quick'			=> false,//false => Not merge index leaves
-			'ignore'		=> false,//false => Not ignore errors
-			'where'			=> '',//Additionnal Whereclause
-			'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
-			'number'		=> -1,//-1 => All
-			'number_percent'=> false,// false => No Percent option
-			'offset'		=> 0,//0 => The start
-			'output'		=> SQLAdapter::NUMBER,//Number of deleted lines
+		'lowpriority'	=> false,//false => Not low priority
+		'quick'			=> false,//false => Not merge index leaves
+		'ignore'		=> false,//false => Not ignore errors
+		'where'			=> '',//Additionnal Whereclause
+		'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
+		'number'		=> -1,//-1 => All
+		'number_percent'=> false,// false => No Percent option
+		'offset'		=> 0,//0 => The start
+		'output'		=> SQLAdapter::NUMBER,//Number of deleted lines
 	);
 
 	/**
@@ -78,11 +78,11 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $insertDefaults = array(
-			'lowpriority'	=> false,//false => Not low priority
-			'delayed'		=> false,//false => Not delayed
-			'ignore'		=> false,//false => Not ignore errors
-			'into'			=> true,//true => INSERT INTO
-			'output'		=> SQLAdapter::NUMBER,//Number of inserted lines
+		'lowpriority'	=> false,//false => Not low priority
+		'delayed'		=> false,//false => Not delayed
+		'ignore'		=> false,//false => Not ignore errors
+		'into'			=> true,//true => INSERT INTO
+		'output'		=> SQLAdapter::NUMBER,//Number of inserted lines
 	);
 	
 	/**
@@ -90,6 +90,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::select()
 	 * @see http://msdn.microsoft.com/en-us/library/aa259187%28v=sql.80%29.aspx
+	 * @param array $options The options used to build the query
 	 */
 	public function select(array $options=array()) {
 		$options += self::$selectDefaults;
@@ -136,6 +137,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::update()
 	 * @see http://msdn.microsoft.com/en-us/library/ms177523.aspx
+	 * @param array $options The options used to build the query
 	 */
 	public function update(array $options=array()) {
 		$options += self::$updateDefaults;
@@ -173,6 +175,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::insert()
 	 * @see http://msdn.microsoft.com/en-us/library/ms174335.aspx
+	 * @param array $options The options used to build the query
 	 */
 	public function insert(array $options=array()) {
 		$options += self::$insertDefaults;
@@ -218,6 +221,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::delete()
 	 * @see http://msdn.microsoft.com/en-us/library/ms189835.aspx
+	 * @param array $options The options used to build the query
 	 */
 	public function delete(array $options=array()) {
 		$options += self::$deleteDefaults;
@@ -250,6 +254,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * 
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::lastID()
+	 * @param string $table The table to get the last inserted id
 	 */
  	public function lastID($table) {
 		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);

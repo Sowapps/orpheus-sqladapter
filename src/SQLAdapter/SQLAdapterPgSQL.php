@@ -20,12 +20,12 @@ class SQLAdapterPgSQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $selectDefaults = array(
-			'what'			=> '*',//* => All fields
-			'where'			=> '',//Additionnal Whereclause
-			'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
-			'number'		=> -1,//-1 => All
-			'offset'		=> 0,//0 => The start
-			'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
+		'what'			=> '*',//* => All fields
+		'where'			=> '',//Additionnal Whereclause
+		'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
+		'number'		=> -1,//-1 => All
+		'offset'		=> 0,//0 => The start
+		'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
 	);
 
 	/**
@@ -34,9 +34,9 @@ class SQLAdapterPgSQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $updateDefaults = array(
-			'only'			=> false,//false => Do not ignore descendants
-			'where'			=> '',//Additionnal Whereclause
-			'output'		=> SQLAdapter::NUMBER,//Number of updated lines
+		'only'			=> false,//false => Do not ignore descendants
+		'where'			=> '',//Additionnal Whereclause
+		'output'		=> SQLAdapter::NUMBER,//Number of updated lines
 	);
 
 	/**
@@ -45,9 +45,9 @@ class SQLAdapterPgSQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $deleteDefaults = array(
-			'only'			=> false,//false => Do not ignore descendants
-			'where'			=> '',//Additionnal Whereclause
-			'output'		=> SQLAdapter::NUMBER,//Number of deleted lines
+		'only'			=> false,//false => Do not ignore descendants
+		'where'			=> '',//Additionnal Whereclause
+		'output'		=> SQLAdapter::NUMBER,//Number of deleted lines
 	);
 
 	/**
@@ -56,17 +56,18 @@ class SQLAdapterPgSQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $insertDefaults = array(
-			'lowpriority'	=> false,//false => Not low priority
-			'delayed'		=> false,//false => Not delayed
-			'ignore'		=> false,//false => Not ignore errors
-			'into'			=> true,//true => INSERT INTO
-			'output'		=> SQLAdapter::NUMBER,//Number of inserted lines
+		'lowpriority'	=> false,//false => Not low priority
+		'delayed'		=> false,//false => Not delayed
+		'ignore'		=> false,//false => Not ignore errors
+		'into'			=> true,//true => INSERT INTO
+		'output'		=> SQLAdapter::NUMBER,//Number of inserted lines
 	);
 	
 	/**
 	 * 
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::select()
+	 * @param array $options The options used to build the query
 	 */
 	public function select(array $options=array()) {
 		$options += self::$selectDefaults;
@@ -99,6 +100,7 @@ class SQLAdapterPgSQL extends SQLAdapter {
 	 * 
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::update()
+	 * @param array $options The options used to build the query
 	 */
 	public function update(array $options=array()) {
 		$options += self::$updateDefaults;
@@ -124,6 +126,7 @@ class SQLAdapterPgSQL extends SQLAdapter {
 	 * 
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::delete()
+	 * @param array $options The options used to build the query
 	 */
 	public function delete(array $options=array()) {
 		$options += self::$deleteDefaults;
@@ -145,6 +148,7 @@ class SQLAdapterPgSQL extends SQLAdapter {
 	 * 
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::insert()
+	 * @param array $options The options used to build the query
 	 */
 	public function insert(array $options=array()) {
 		$options += self::$insertDefaults;
@@ -186,6 +190,7 @@ class SQLAdapterPgSQL extends SQLAdapter {
 	 * 
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::lastID()
+	 * @param string $table The table to get the last inserted id
 	 */
 	public function lastID($table) {
 		return $this->query("SELECT currval('{$table}_{$this->IDFIELD}_seq'::regclass)", PDOFETCHFIRSTCOL);
