@@ -107,10 +107,11 @@ class SQLAdapterMySQL extends SQLAdapter {
 		if( !$options['number'] && $options['output'] == static::ARR_FIRST ) {
 			$options['number']	= 1;
 		}
-		$TABLE		= static::escapeIdentifier($options['table']);
+		$isFromTable = $options['table'][0] != '(';
+		$TABLE		= $isFromTable ? static::escapeIdentifier($options['table']) : $options['table'];
 		// Auto-satisfy join queries
 		if( empty($options['what']) ) {
-			$options['what'] = $TABLE.'.*';
+			$options['what'] = $isFromTable ? $TABLE.'.*' : '*';
 		}
 		$WHAT		= is_array($options['what']) ? implode(', ', $options['what']) : $options['what'];
 		$WC			= $options['where'] ? 'WHERE '.(is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
@@ -121,7 +122,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 				( $options['offset'] > 0 ? $options['offset'].', ' : '' ).$options['number'] : '';
 		$JOIN		= is_array($options['join']) ? implode(' ', $options['join']) : $options['join'];
 		
-		$QUERY		= "SELECT {$WHAT} FROM {$TABLE} {$JOIN} {$WC} {$GROUPBY} {$HAVING} {$ORDERBY} {$LIMIT};";
+		$QUERY		= "SELECT {$WHAT} FROM {$TABLE} {$JOIN} {$WC} {$GROUPBY} {$HAVING} {$ORDERBY} {$LIMIT}";
 		if( $options['output'] == static::SQLQUERY ) {
 			return $QUERY;
 		}
@@ -172,7 +173,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 				( ($options['offset'] > 0) ? $options['offset'].', ' : '' ).$options['number'] : '';
 		$TABLE		= static::escapeIdentifier($options['table']);
 	
-		$QUERY		= "UPDATE {$OPTIONS} {$TABLE} SET {$WHAT} {$WC} {$ORDERBY} {$LIMIT};";
+		$QUERY		= "UPDATE {$OPTIONS} {$TABLE} SET {$WHAT} {$WC} {$ORDERBY} {$LIMIT}";
 		if( $options['output'] == static::SQLQUERY ) {
 			return $QUERY;
 		}
@@ -224,7 +225,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		}
 		$TABLE		= static::escapeIdentifier($options['table']);
 		
-		$QUERY = "INSERT {$OPTIONS} {$TABLE} {$COLS} {$WHAT};";
+		$QUERY = "INSERT {$OPTIONS} {$TABLE} {$COLS} {$WHAT}";
 		if( $options['output'] == static::SQLQUERY ) {
 			return $QUERY;
 		}
@@ -254,7 +255,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 			( ($options['offset'] > 0) ? $options['offset'].', ' : '' ).$options['number'] : '';
 		$TABLE		= static::escapeIdentifier($options['table']);
 		
-		$QUERY		= "DELETE {$OPTIONS} FROM {$TABLE} {$WC} {$ORDERBY} {$LIMIT};";
+		$QUERY		= "DELETE {$OPTIONS} FROM {$TABLE} {$WC} {$ORDERBY} {$LIMIT}";
 		if( $options['output'] == static::SQLQUERY ) {
 			return $QUERY;
 		}

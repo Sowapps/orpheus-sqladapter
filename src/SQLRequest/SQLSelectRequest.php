@@ -216,6 +216,15 @@ class SQLSelectRequest extends SQLRequest {
 	 */
 	public function count($max='') {
 		$countKey	= '0rpHeus_Count';
+		$query = $this->getClone(false);
+
+		$result = $query->set('what', 'COUNT(*) '.$countKey)
+			->from('('.$this->getQuery().') oq')
+			->asArray()->run();
+		
+// 		debug('Count $query - query', $query->getQuery());
+// 		debug('Count $result', $result);
+		/*
 		$what	= $this->get('what');
 		$output	= $this->get('output');
 		$number	= $this->get('number');
@@ -229,7 +238,9 @@ class SQLSelectRequest extends SQLRequest {
 // 			debug('Query : '.$this->run());
 // 			$this->set('output', SQLAdapter::ARR_FIRST);
 			$this->asArray();
+			debug('Query => '.$this->getQuery());
 			$result = $this->run();
+			debug('$result', $result);
 		} catch( \Exception $e ) {
 			
 		}
@@ -242,6 +253,7 @@ class SQLSelectRequest extends SQLRequest {
 		if( isset($e) ) {
 			throw $e;
 		}
+		*/
 		
 		return isset($result[$countKey]) ? $result[$countKey] : 0;
 	}
