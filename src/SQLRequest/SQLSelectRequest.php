@@ -85,7 +85,7 @@ class SQLSelectRequest extends SQLRequest {
 	 * @param string $condition
 	 * @param string $equality
 	 * @param string $value
-	 * @return \Orpheus\SQLRequest\SQLRequest
+	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 * 
 	 * If only $condition is provided, this is used as complete string, e.g where("id = 5")
 	 * If $equality & $value are provided, it uses it with $condition as a field (identifier), e.g where('id', '=', '5')
@@ -112,7 +112,7 @@ class SQLSelectRequest extends SQLRequest {
 	 * Set/Get the order by filter
 	 * 
 	 * @param string $fields
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function orderby($fields=null) {
 		return $this->sget('orderby', $fields);
@@ -122,7 +122,7 @@ class SQLSelectRequest extends SQLRequest {
 	 * Set/Get the group by filter
 	 *
 	 * @param string $field
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function groupby($field=null) {
 		return $this->sget('groupby', $field);
@@ -132,7 +132,7 @@ class SQLSelectRequest extends SQLRequest {
 	 * Set/Get the number of expected result (as limit)
 	 *
 	 * @param int $number
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function number($number=null) {
 		return $this->sget('number', $number);
@@ -142,7 +142,7 @@ class SQLSelectRequest extends SQLRequest {
 	 * Set/Get the offset from which we are getting results
 	 *
 	 * @param int $offset
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function fromOffset($offset=null) {
 		return $this->sget('offset', $offset);
@@ -152,7 +152,7 @@ class SQLSelectRequest extends SQLRequest {
 	 * Add a join condition to this query
 	 * 
 	 * @param string $join
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function join($join) {
 		$joins		= $this->get('join', array());
@@ -163,7 +163,7 @@ class SQLSelectRequest extends SQLRequest {
 	/**
 	 * Set the output to be an object
 	 * 
-	 * @return object
+	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function asObject() {
 // 		debug('SQLAdapter::OBJECT', SQLAdapter::OBJECT);
@@ -173,7 +173,7 @@ class SQLSelectRequest extends SQLRequest {
 	/**
 	 * Set the output to be a list of object
 	 *
-	 * @return object[]
+	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function asObjectList() {
 		return $this->output(SQLAdapter::ARR_OBJECTS);
@@ -182,7 +182,7 @@ class SQLSelectRequest extends SQLRequest {
 	/**
 	 * Set the output to be an array
 	 *
-	 * @return string[]
+	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function asArray() {
 		return $this->output(SQLAdapter::ARR_FIRST);
@@ -192,7 +192,7 @@ class SQLSelectRequest extends SQLRequest {
 	/**
 	 * Set the output to be a list of array
 	 *
-	 * @return string[][]
+	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function asArrayList() {
 		return $this->output(SQLAdapter::ARR_ASSOC);
