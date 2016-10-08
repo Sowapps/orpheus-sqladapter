@@ -95,7 +95,7 @@ class SQLSelectRequest extends SQLRequest {
 	 */
 	public function where($condition, $equality=null, $value=null) {
 		if( $equality ) {
-			if( !$value ) {
+			if( $value === null ) {
 				$value		= $equality;
 				$equality	= is_array($value) ? 'IN' : '=';
 			}
