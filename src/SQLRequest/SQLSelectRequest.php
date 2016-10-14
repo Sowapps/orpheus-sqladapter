@@ -135,7 +135,7 @@ class SQLSelectRequest extends SQLRequest {
 	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function number($number=null) {
-		return $this->maxResults($number);
+		return $this->maxRows($number);
 	}
 
 	/**
