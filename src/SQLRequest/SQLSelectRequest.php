@@ -135,6 +135,16 @@ class SQLSelectRequest extends SQLRequest {
 	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function number($number=null) {
+		return $this->maxResults($number);
+	}
+
+	/**
+	 * Set/Get the number of expected result (as limit)
+	 *
+	 * @param int $number
+	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
+	 */
+	public function maxRows($number=null) {
 		return $this->sget('number', $number);
 	}
 	

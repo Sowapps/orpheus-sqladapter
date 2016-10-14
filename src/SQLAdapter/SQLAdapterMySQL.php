@@ -105,15 +105,18 @@ class SQLAdapterMySQL extends SQLAdapter {
 			throw new Exception('Empty table option');
 		}
 		if( !$options['number'] && $options['output'] == static::ARR_FIRST ) {
-			$options['number']	= 1;
+			$options['number'] = 1;
 		}
 		$isFromTable = $options['table'][0] != '(';
-		$TABLE		= $isFromTable ? static::escapeIdentifier($options['table']) : $options['table'];
+		$TABLE = $isFromTable ? static::escapeIdentifier($options['table']) : $options['table'];
 		// Auto-satisfy join queries
 		if( empty($options['what']) ) {
 			$options['what'] = $isFromTable ? $TABLE.'.*' : '*';
+		} else
+		if( is_array($options['what']) ) {
+			$options['what'] = implode(', ', $options['what']);
 		}
-		$WHAT		= is_array($options['what']) ? implode(', ', $options['what']) : $options['what'];
+		$WHAT		= $options['what'];
 		$WC			= $options['where'] ? 'WHERE '.(is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
 		$GROUPBY	= !empty($options['groupby']) ? 'GROUP BY '.$options['groupby'] : '';
 		$ORDERBY	= !empty($options['orderby']) ? 'ORDER BY '.$options['orderby'] : '';
