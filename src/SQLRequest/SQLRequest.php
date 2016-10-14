@@ -56,6 +56,15 @@ abstract class SQLRequest {
 	}
 	
 	/**
+	 * Get object as string
+	 * 
+	 * @return string
+	 */
+	public function __toString() {
+		return $this->getQuery();
+	}
+	
+	/**
 	 * Get a clone of current request
 	 * 
 	 * @param string $withParameters True to also copy parameters, default to true
