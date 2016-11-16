@@ -62,7 +62,7 @@ function pdo_getDefaultInstance() {
 			$DBS[$instance] = $DBS;
 		}
 	} else {
-		pdo_error('Database configuration NOT FOUND and no Instance defined by default with constant "PDODEFINSTNAME".', 'Instance Definition');
+		pdo_error('Database configuration not found, define constant PDODEFINSTNAME to set the default instance.', 'Instance Definition');
 	}
 	return $instance;
 }
