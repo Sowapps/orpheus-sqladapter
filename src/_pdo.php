@@ -299,12 +299,14 @@ function pdo_lastInsertId($instance=null) {
  * @param PDOException $original The original exception. Optional, default value is null.
  * 
  * Save the error report $report in the log file and throw an exception.
+ * If the error is minor, nothing happen, else
+ * The error is reported and an exception is thrown
  */
 function pdo_error($report, $action='', $fetch=0, $original=null) {
 // 	debug('pdo_error('.$report.', '.$action.')');
 // 	die();
 	if( bintest($fetch, PDOERROR_MINOR) ) { return; }
-	sql_error($report, $action);
+	sql_error($report, $action, true);
 	throw new SQLException($report, $action, $original);
 }
 
