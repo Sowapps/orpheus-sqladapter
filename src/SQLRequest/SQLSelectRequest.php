@@ -5,6 +5,7 @@
 
 namespace Orpheus\SQLRequest;
 
+use \Iterator;
 use Orpheus\SQLAdapter\SQLAdapter;
 
 /**
@@ -12,7 +13,7 @@ use Orpheus\SQLAdapter\SQLAdapter;
  * 
  * This class handles sql SELECT request to the DMBS server.
  */
-class SQLSelectRequest extends SQLRequest {
+class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * Is using cache for results
@@ -277,10 +278,24 @@ class SQLSelectRequest extends SQLRequest {
 	
 	/**
 	 * The current fetch is expecting an object
-	 * 
+	 *
 	 * @var boolean
 	 */
 	protected $fetchIsObject;
+	
+	/**
+	 * The current index
+	 *
+	 * @var int
+	 */
+	protected $currentIndex;
+	
+	/**
+	 * The current row
+	 *
+	 * @var mixed
+	 */
+	protected $currentRow;
 	
 	/**
 	 * Fetch the next result of this query
@@ -314,18 +329,16 @@ class SQLSelectRequest extends SQLRequest {
 	 * @see \Orpheus\SQLRequest\SQLRequest::run()
 	 */
 	public function run() {
-		$options	= $this->parameters;
-		$onlyOne	= $objects = 0;
+		$options = $this->parameters;
+		$onlyOne = $objects = 0;
 		if( in_array($options['output'], array(SQLAdapter::ARR_OBJECTS, SQLAdapter::OBJECT)) ) {
 			if( $options['output'] == SQLAdapter::OBJECT ) {
 				$options['number'] = 1;
 				$onlyOne = 1;
 			}
-			$options['output']	= SQLAdapter::ARR_ASSOC;
-// 			$options['what'] = '*';// Could be * or something derived for order e.g
+			$options['output'] = SQLAdapter::ARR_ASSOC;
 			$objects = 1;
 		}
-// 		$r	= SQLAdapter::doSelect($options, $this->instance, $this->idField);
 		$r = $this->sqlAdapter->select($options);
 		if( is_object($r) ) {
 			return $r;
@@ -333,11 +346,10 @@ class SQLSelectRequest extends SQLRequest {
 		if( empty($r) && in_array($options['output'], array(SQLAdapter::ARR_ASSOC, SQLAdapter::ARR_OBJECTS, SQLAdapter::ARR_FIRST)) ) {
 			return $onlyOne && $objects ? null : array();
 		}
-		$class		= $this->class;
+		$class = $this->class;
 		if( !empty($r) && $objects ) {
-// 			if( isset($options['number']) && $options['number'] == 1 ) {
 			if( $onlyOne ) {
-				$r	= $class::load($r[0], true, $this->usingCache);
+				$r = $class::load($r[0], true, $this->usingCache);
 			} else {
 				foreach( $r as &$rdata ) {
 					$rdata = $class::load($rdata, true, $this->usingCache);
@@ -347,4 +359,47 @@ class SQLSelectRequest extends SQLRequest {
 		return $r;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 * @see Iterator::next()
+	 */
+	public function next() {
+		$this->currentRow = $this->fetch();
+		$this->currentIndex = $this->currentRow !== null ? ($this->currentIndex !== null ? $this->currentIndex+1 : 0) : null;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @see Iterator::current()
+	 */
+	public function current() {
+		return $this->currentRow;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see Iterator::key()
+	 */
+	public function key() {
+		return $this->currentIndex;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see Iterator::valid()
+	 */
+	public function valid() {
+		return $this->currentRow != null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see Iterator::rewind()
+	 */
+	public function rewind() {
+		$this->currentIndex = null;
+		$this->currentRow = null;
+		$this->fetchLastStatement = null;
+	}
+
 }
