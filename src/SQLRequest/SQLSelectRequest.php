@@ -5,26 +5,28 @@
 
 namespace Orpheus\SQLRequest;
 
-use \Iterator;
+use Exception;
+use Iterator;
 use Orpheus\SQLAdapter\SQLAdapter;
+use PDOStatement;
 
 /**
  * The main SQL Select Request class
- * 
+ *
  * This class handles sql SELECT request to the DMBS server.
  */
 class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * Is using cache for results
-	 * 
+	 *
 	 * @var boolean
 	 */
 	protected $usingCache = true;
 	
 	/**
 	 * Set the class objects is using cache when getting results
-	 * 
+	 *
 	 * @param boolean $usingCache
 	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 */
@@ -35,7 +37,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * Disable the class objects' cache
-	 * 
+	 *
 	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 * @see setUsingCache()
 	 */
@@ -45,33 +47,33 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * Set/Get the field list to get
-	 * 
+	 *
 	 * @param string|string[] $fields
 	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
 	 */
-	public function fields($fields=null) {
+	public function fields($fields = null) {
 		return $this->sget('what', $fields);
 	}
 	
 	/**
 	 * Add a field to to the field list
-	 * 
+	 *
 	 * @param string $field
 	 * @return \Orpheus\SQLRequest\SQLRequest
-	 * 
+	 *
 	 * The current field list must be a string
 	 */
 	public function addField($field) {
-		return $this->sget('what', $this->get('what', '*').','.$field);
+		return $this->sget('what', $this->get('what', '*') . ',' . $field);
 	}
 	
 	/**
 	 * Set/Get the having condition
-	 * 
+	 *
 	 * @param string $condition
 	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
 	 */
-	public function having($condition=null) {
+	public function having($condition = null) {
 		$having = $this->get('having', array());
 		if( !$condition ) {
 			return $having;
@@ -82,40 +84,40 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * Set the whereclause
-	 * 
+	 *
 	 * @param string $condition
 	 * @param string $equality
 	 * @param string $value
 	 * @return \Orpheus\SQLRequest\SQLSelectRequest
-	 * 
+	 *
 	 * If only $condition is provided, this is used as complete string, e.g where("id = 5")
 	 * If $equality & $value are provided, it uses it with $condition as a field (identifier), e.g where('id', '=', '5')
 	 * where identifier and value are escaped with escapeIdentifier() & escapeValue()
 	 * If $equality is provided but $value is not, $equality is the value and where are using a smart comparator, e.g where('id', '5')
 	 * All examples return the same results. Smart comparator is IN for array values and = for all other.
 	 */
-	public function where($condition, $equality=null, $value=null) {
+	public function where($condition, $equality = null, $value = null) {
 		if( $equality !== null ) {
 			if( $value === null ) {
-				$value		= $equality;
-				$equality	= is_array($value) ? 'IN' : '=';
+				$value = $equality;
+				$equality = is_array($value) ? 'IN' : '=';
 			}
-			$condition = $this->escapeIdentifier($condition).' '.$equality.' '.(is_array($value) ?
-				'('.$this->sqlAdapter->formatValueList($value).')' :
-				$this->escapeValue(is_object($value) ? id($value) : $value));
+			$condition = $this->escapeIdentifier($condition) . ' ' . $equality . ' ' . (is_array($value) ?
+					'(' . $this->sqlAdapter->formatValueList($value) . ')' :
+					$this->escapeValue(is_object($value) ? id($value) : $value));
 		}
-		$where		= $this->get('where', array());
-		$where[]	= $condition;
+		$where = $this->get('where', array());
+		$where[] = $condition;
 		return $this->sget('where', $where);
 	}
 	
 	/**
 	 * Set/Get the order by filter
-	 * 
+	 *
 	 * @param string $fields
 	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
-	public function orderby($fields=null) {
+	public function orderby($fields = null) {
 		return $this->sget('orderby', $fields);
 	}
 	
@@ -125,27 +127,27 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param string $field
 	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
-	public function groupby($field=null) {
+	public function groupby($field = null) {
 		return $this->sget('groupby', $field);
 	}
-
+	
 	/**
 	 * Set/Get the number of expected result (as limit)
 	 *
 	 * @param int $number
 	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
-	public function number($number=null) {
+	public function number($number = null) {
 		return $this->maxRows($number);
 	}
-
+	
 	/**
 	 * Set/Get the number of expected result (as limit)
 	 *
 	 * @param int $number
 	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
-	public function maxRows($number=null) {
+	public function maxRows($number = null) {
 		return $this->sget('number', $number);
 	}
 	
@@ -155,29 +157,36 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param int $offset
 	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
 	 */
-	public function fromOffset($offset=null) {
+	public function fromOffset($offset = null) {
 		return $this->sget('offset', $offset);
 	}
 	
 	/**
 	 * Add a join condition to this query
-	 * 
+	 *
 	 * @param string $join
 	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function join($join) {
-		$joins		= $this->get('join', array());
-		$joins[]	= $join;
+		$joins = $this->get('join', array());
+		$joins[] = $join;
 		return $this->sget('join', $joins);
 	}
 	
 	/**
+	 * @param string $alias
+	 * @return mixed|SQLRequest
+	 */
+	public function alias($alias) {
+		return $this->sget('alias', $alias);
+	}
+	
+	/**
 	 * Set the output to be an object
-	 * 
+	 *
 	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 */
 	public function asObject() {
-// 		debug('SQLAdapter::OBJECT', SQLAdapter::OBJECT);
 		return $this->output(SQLAdapter::OBJECT);
 	}
 	
@@ -199,7 +208,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 		return $this->output(SQLAdapter::ARR_FIRST);
 	}
 	
-
+	
 	/**
 	 * Set the output to be a list of array
 	 *
@@ -211,7 +220,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * Test if the query has any result
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function exists() {
@@ -220,58 +229,25 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * Count the number of result of this query
-	 * 
+	 *
 	 * @param int $max The max number where are expecting
 	 * @throws Exception
 	 * @return int
 	 */
-	public function count($max='') {
-		$countKey	= '0rpHeus_Count';
+	public function count($max = '') {
+		$countKey = '0rpHeus_Count';
 		$query = $this->getClone(false);
-
-		$result = $query->set('what', 'COUNT(*) '.$countKey)
-			->from('('.$this->getQuery().') oq')
+		
+		$result = $query->set('what', 'COUNT(*) ' . $countKey)
+			->from('(' . $this->getQuery() . ') oq')
 			->asArray()->run();
-		
-// 		debug('Count $query - query', $query->getQuery());
-// 		debug('Count $result', $result);
-		/*
-		$what	= $this->get('what');
-		$output	= $this->get('output');
-		$number	= $this->get('number');
-		$offset	= $this->get('offset');
-		
-		try  {
-			$this->set('what', ($what ? $what.', ' : '').'SUM(1) '.$countKey);
-			$this->set('number', $max);
-			$this->set('offset', '');
-// 			$this->set('output', SQLAdapter::SQLQUERY);
-// 			debug('Query : '.$this->run());
-// 			$this->set('output', SQLAdapter::ARR_FIRST);
-			$this->asArray();
-			debug('Query => '.$this->getQuery());
-			$result = $this->run();
-			debug('$result', $result);
-		} catch( \Exception $e ) {
-			
-		}
-		
-		$this->set('what', $what);
-		$this->set('output', $output);
-		$this->set('number', $number);
-		$this->set('offset', $offset);
-		
-		if( isset($e) ) {
-			throw $e;
-		}
-		*/
 		
 		return isset($result[$countKey]) ? $result[$countKey] : 0;
 	}
-
+	
 	/**
 	 * The current fetch statement
-	 * 
+	 *
 	 * @var PDOStatement
 	 */
 	protected $fetchLastStatement;
@@ -299,9 +275,9 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * Fetch the next result of this query
-	 * 
+	 *
 	 * @return NULL|mixed
-	 * 
+	 *
 	 * Query one time the DBMS and fetch result for next calls
 	 * This feature is made for common used else it may have an unexpected behavior
 	 */
@@ -324,7 +300,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	}
 	
 	/**
-	 * 
+	 *
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLRequest\SQLRequest::run()
 	 */
@@ -365,7 +341,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 */
 	public function next() {
 		$this->currentRow = $this->fetch();
-		$this->currentIndex = $this->currentRow !== null ? ($this->currentIndex !== null ? $this->currentIndex+1 : 0) : null;
+		$this->currentIndex = $this->currentRow !== null ? ($this->currentIndex !== null ? $this->currentIndex + 1 : 0) : null;
 	}
 	
 	/**
@@ -375,7 +351,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	public function current() {
 		return $this->currentRow;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 * @see Iterator::key()
@@ -383,7 +359,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	public function key() {
 		return $this->currentIndex;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 * @see Iterator::valid()
@@ -391,7 +367,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	public function valid() {
 		return $this->currentRow != null;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 * @see Iterator::rewind()
@@ -401,5 +377,5 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 		$this->currentRow = null;
 		$this->fetchLastStatement = null;
 	}
-
+	
 }

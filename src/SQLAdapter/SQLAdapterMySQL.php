@@ -20,14 +20,15 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 * @var array
 	 */
 	protected static $selectDefaults = array(
-			'what'			=> '',//table.* => All fields
+			'what'			=> '',// table.* => All fields
 			'join'			=> '',// No join
-			'where'			=> '',//Additionnal Whereclause
-			'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
-			'groupby'		=> '',//Ex: Field
-			'number'		=> -1,//-1 => All
-			'offset'		=> 0,//0 => The start
-			'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
+			'where'			=> '',// Additionnal Whereclause
+			'orderby'		=> '',// Ex: Field1 ASC, Field2 DESC
+			'groupby'		=> '',// Ex: Field
+			'number'		=> -1,// -1 => All
+			'offset'		=> 0,// 0 => The start
+			'output'		=> SQLAdapter::ARR_ASSOC,// Associative Array
+			'alias'			=> null,// No alias
 	);
 
 	/**
@@ -117,6 +118,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 			$options['what'] = implode(', ', $options['what']);
 		}
 		$WHAT		= $options['what'];
+		$ALIAS		= $options['alias'];
 		$WC			= $options['where'] ? 'WHERE '.(is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
 		$GROUPBY	= !empty($options['groupby']) ? 'GROUP BY '.$options['groupby'] : '';
 		$ORDERBY	= !empty($options['orderby']) ? 'ORDER BY '.$options['orderby'] : '';
@@ -125,7 +127,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 				( $options['offset'] > 0 ? $options['offset'].', ' : '' ).$options['number'] : '';
 		$JOIN		= is_array($options['join']) ? implode(' ', $options['join']) : $options['join'];
 		
-		$QUERY		= "SELECT {$WHAT} FROM {$TABLE} {$JOIN} {$WC} {$GROUPBY} {$HAVING} {$ORDERBY} {$LIMIT}";
+		$QUERY		= "SELECT {$WHAT} FROM {$TABLE} {$ALIAS} {$JOIN} {$WC} {$GROUPBY} {$HAVING} {$ORDERBY} {$LIMIT}";
 		if( $options['output'] == static::SQLQUERY ) {
 			return $QUERY;
 		}
