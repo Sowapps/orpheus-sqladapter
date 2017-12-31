@@ -112,13 +112,13 @@ class SQLAdapterMySQL extends SQLAdapter {
 		$TABLE = $isFromTable ? static::escapeIdentifier($options['table']) : $options['table'];
 		// Auto-satisfy join queries
 		if( empty($options['what']) ) {
-			$options['what'] = $isFromTable ? $TABLE.'.*' : '*';
+			$options['what'] = $isFromTable ? (!empty($options['alias']) ? $options['alias'] : $TABLE).'.*' : '*';
 		} else
 		if( is_array($options['what']) ) {
 			$options['what'] = implode(', ', $options['what']);
 		}
 		$WHAT		= $options['what'];
-		$ALIAS		= $options['alias'];
+		$ALIAS		= !empty($options['alias']) ? $options['alias'] : '';
 		$WC			= $options['where'] ? 'WHERE '.(is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
 		$GROUPBY	= !empty($options['groupby']) ? 'GROUP BY '.$options['groupby'] : '';
 		$ORDERBY	= !empty($options['orderby']) ? 'ORDER BY '.$options['orderby'] : '';
