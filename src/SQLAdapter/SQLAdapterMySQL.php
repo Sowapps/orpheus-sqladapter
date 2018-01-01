@@ -288,7 +288,10 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 * @param string $identifier The identifier to escape
 	 */
 	public function escapeIdentifier($identifier) {
-		return '`'.$identifier.'`';
+		return '`'.str_replace('.', '`.`', $identifier).'`';
+//		return implode('.', array_map(function($s) {
+//				return '`'.$s.'`';
+//			}, explode('.', $identifier)));
 	}
 	
 	/**
