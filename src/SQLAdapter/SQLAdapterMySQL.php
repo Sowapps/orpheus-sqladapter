@@ -5,6 +5,7 @@
 
 namespace Orpheus\SQLAdapter;
 
+use Exception;
 use PDO;
 
 /**
@@ -29,6 +30,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 			'offset'		=> 0,// 0 => The start
 			'output'		=> SQLAdapter::ARR_ASSOC,// Associative Array
 			'alias'			=> null,// No alias
+			'distinct'		=> null,// No remove of duplicates
 	);
 
 	/**
@@ -105,7 +107,8 @@ class SQLAdapterMySQL extends SQLAdapter {
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
 		}
-		if( !$options['number'] && $options['output'] == static::ARR_FIRST ) {
+		$output = intval($options['output']);
+		if( !$options['number'] && $output === static::ARR_FIRST ) {
 			$options['number'] = 1;
 		}
 		$isFromTable = $options['table'][0] != '(';
@@ -118,6 +121,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 			$options['what'] = implode(', ', $options['what']);
 		}
 		$WHAT		= $options['what'];
+		$DISTINCT	= $options['distinct']? 'DISTINCT' : '';
 		$ALIAS		= !empty($options['alias']) ? $options['alias'] : '';
 		$WC			= $options['where'] ? 'WHERE '.(is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
 		$GROUPBY	= !empty($options['groupby']) ? 'GROUP BY '.$options['groupby'] : '';
@@ -127,19 +131,17 @@ class SQLAdapterMySQL extends SQLAdapter {
 				( $options['offset'] > 0 ? $options['offset'].', ' : '' ).$options['number'] : '';
 		$JOIN		= is_array($options['join']) ? implode(' ', $options['join']) : $options['join'];
 		
-		$QUERY		= "SELECT {$WHAT} FROM {$TABLE} {$ALIAS} {$JOIN} {$WC} {$GROUPBY} {$HAVING} {$ORDERBY} {$LIMIT}";
-		if( $options['output'] == static::SQLQUERY ) {
+		$QUERY		= "SELECT {$DISTINCT} {$WHAT} FROM {$TABLE} {$ALIAS} {$JOIN} {$WC} {$GROUPBY} {$HAVING} {$ORDERBY} {$LIMIT}";
+		if( $output === static::SQLQUERY ) {
 			return $QUERY;
 		}
-		$results = $this->query($QUERY, ($options['output'] == static::STATEMENT) ? PDOSTMT : PDOFETCHALL );
-		if( $options['output'] == static::ARR_OBJECTS ) {
+		$results = $this->query($QUERY, ($output === static::STATEMENT) ? PDOSTMT : PDOFETCHALL );
+		if( $output === static::ARR_OBJECTS ) {
 			foreach($results as &$r) {
 				$r = (object)$r;//stdClass
 			}
 		}
-		return (!empty($results) && $options['output'] == static::ARR_FIRST) ?  $results[0] : $results;
-		
-// 		return (!empty($results) && $options['output'] == static::ARR_ASSOC && $options['number'] == 1) ? $results[0] : $results;
+		return (!empty($results) && $output === static::ARR_FIRST) ?  $results[0] : $results;
 	}
 	
 	/**

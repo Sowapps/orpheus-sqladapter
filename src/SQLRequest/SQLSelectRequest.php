@@ -182,6 +182,14 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	}
 	
 	/**
+	 * @param bool|null $isDistinct
+	 * @return mixed|SQLRequest
+	 */
+	public function distinct($isDistinct = null) {
+		return $this->sget('distinct', $isDistinct);
+	}
+	
+	/**
 	 * Set the output to be an object
 	 *
 	 * @return \Orpheus\SQLRequest\SQLSelectRequest
