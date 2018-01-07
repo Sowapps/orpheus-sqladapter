@@ -38,7 +38,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	/**
 	 * Disable the class objects' cache
 	 *
-	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @return $this
 	 * @see setUsingCache()
 	 */
 	public function disableCache() {
@@ -49,7 +49,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the field list to get
 	 *
 	 * @param string|string[] $fields
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return mixed|$this
 	 */
 	public function fields($fields = null) {
 		return $this->sget('what', $fields);
@@ -59,7 +59,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Add a field to to the field list
 	 *
 	 * @param string $field
-	 * @return \Orpheus\SQLRequest\SQLRequest
+	 * @return $this
 	 *
 	 * The current field list must be a string
 	 */
@@ -155,7 +155,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the offset from which we are getting results
 	 *
 	 * @param int $offset
-	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
+	 * @return mixed|$this
 	 */
 	public function fromOffset($offset = null) {
 		return $this->sget('offset', $offset);
@@ -165,7 +165,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Add a join condition to this query
 	 *
 	 * @param string $join
-	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @return $this
 	 */
 	public function join($join) {
 		$joins = $this->get('join', array());
@@ -175,7 +175,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * @param string $alias
-	 * @return mixed|SQLRequest
+	 * @return mixed|$this
 	 */
 	public function alias($alias) {
 		return $this->sget('alias', $alias);
@@ -183,7 +183,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * @param bool|null $isDistinct
-	 * @return mixed|SQLRequest
+	 * @return mixed|$this
 	 */
 	public function distinct($isDistinct = null) {
 		return $this->sget('distinct', $isDistinct);
@@ -192,7 +192,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	/**
 	 * Set the output to be an object
 	 *
-	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @return $this
 	 */
 	public function asObject() {
 		return $this->output(SQLAdapter::OBJECT);
@@ -201,7 +201,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	/**
 	 * Set the output to be a list of object
 	 *
-	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @return $this
 	 */
 	public function asObjectList() {
 		return $this->output(SQLAdapter::ARR_OBJECTS);
@@ -210,7 +210,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	/**
 	 * Set the output to be an array
 	 *
-	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @return $this
 	 */
 	public function asArray() {
 		return $this->output(SQLAdapter::ARR_FIRST);
@@ -220,7 +220,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	/**
 	 * Set the output to be a list of array
 	 *
-	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @return $this
 	 */
 	public function asArrayList() {
 		return $this->output(SQLAdapter::ARR_ASSOC);
