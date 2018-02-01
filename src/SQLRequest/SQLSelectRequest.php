@@ -281,6 +281,12 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 */
 	protected $currentRow;
 	
+	protected function startFetching() {
+		$this->fetchIsObject = $this->get('output', SQLAdapter::ARR_OBJECTS) === SQLAdapter::ARR_OBJECTS;
+		$this->set('output', SQLAdapter::STATEMENT);
+		$this->fetchLastStatement = $this->run();
+	}
+	
 	/**
 	 * Fetch the next result of this query
 	 *
@@ -291,9 +297,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 */
 	public function fetch() {
 		if( !$this->fetchLastStatement ) {
-			$this->fetchIsObject = $this->get('output', SQLAdapter::ARR_OBJECTS) === SQLAdapter::ARR_OBJECTS;
-			$this->set('output', SQLAdapter::STATEMENT);
-			$this->fetchLastStatement = $this->run();
+			$this->startFetching();
 		}
 		$row = $this->fetchLastStatement->fetch(\PDO::FETCH_ASSOC);
 		if( !$row ) {
@@ -349,7 +353,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 */
 	public function next() {
 		$this->currentRow = $this->fetch();
-		$this->currentIndex = $this->currentRow !== null ? ($this->currentIndex !== null ? $this->currentIndex + 1 : 0) : null;
+		$this->currentIndex++;
+		//		$this->currentIndex = $this->currentRow !== null ? ($this->currentIndex !== null ? $this->currentIndex + 1 : 0) : null;
 	}
 	
 	/**
@@ -373,7 +378,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @see Iterator::valid()
 	 */
 	public function valid() {
-		return $this->currentRow != null;
+		return $this->fetchLastStatement != null && $this->currentRow != null;
 	}
 	
 	/**
@@ -381,9 +386,9 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @see Iterator::rewind()
 	 */
 	public function rewind() {
-		$this->currentIndex = null;
+		$this->currentIndex = -1;
 		$this->currentRow = null;
-		$this->fetchLastStatement = null;
+		$this->next();
 	}
 	
 }
