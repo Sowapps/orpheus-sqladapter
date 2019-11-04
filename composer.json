@@ -1,31 +1,33 @@
 {
-	"name" : "orpheus/orpheus-sqladapter",
-	"description" : "Orpheus SQL Adapter",
-	"keywords" : [
-		"orpheus",
-		"database",
-		"sql",
-		"query"
-	],
-	"autoload" : {
-		"psr-4" : {
-			"Orpheus\\" : "src"
-		},
-		"files" : [
-			"src/_loader.php"
-		]
+  "name": "orpheus/orpheus-sqladapter",
+  "description": "Orpheus SQL Adapter",
+  "keywords": [
+	"orpheus",
+	"database",
+	"sql",
+	"query"
+  ],
+  "autoload": {
+	"psr-4": {
+	  "Orpheus\\": "src"
 	},
-	"require" : {
-		"orpheus/orpheus-core" : "dev-master",
-		"orpheus/orpheus-cache" : "dev-master"
-	},
-	"type" : "library",
-	"license" : "MIT",
-	"authors" : [{
-			"name" : "Florent HAZARD",
-			"email" : "contact@sowapps.com",
-			"homepage" : "http://sowapps.com",
-			"role" : "Developer"
-		}
+	"files": [
+	  "src/_loader.php"
 	]
+  },
+  "require": {
+	"orpheus/orpheus-core": "dev-master",
+	"orpheus/orpheus-cache": "dev-master",
+	"ext-pdo": "*"
+  },
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+	{
+	  "name": "Florent HAZARD",
+	  "email": "contact@sowapps.com",
+	  "homepage": "http://sowapps.com",
+	  "role": "Developer"
+	}
+  ]
 }

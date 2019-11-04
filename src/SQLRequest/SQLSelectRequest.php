@@ -23,6 +23,40 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @var boolean
 	 */
 	protected $usingCache = true;
+	/**
+	 * The current fetch statement
+	 *
+	 * @var PDOStatement
+	 */
+	protected $fetchLastStatement;
+	/**
+	 * The current fetch is expecting an object
+	 *
+	 * @var boolean
+	 */
+	protected $fetchIsObject;
+	/**
+	 * The current index
+	 *
+	 * @var int
+	 */
+	protected $currentIndex;
+	/**
+	 * The current row
+	 *
+	 * @var mixed
+	 */
+	protected $currentRow;
+	
+	/**
+	 * Disable the class objects' cache
+	 *
+	 * @return $this
+	 * @see setUsingCache()
+	 */
+	public function disableCache() {
+		return $this->setUsingCache(false);
+	}
 	
 	/**
 	 * Set the class objects is using cache when getting results
@@ -33,16 +67,6 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	public function setUsingCache($usingCache) {
 		$this->usingCache = $usingCache;
 		return $this;
-	}
-	
-	/**
-	 * Disable the class objects' cache
-	 *
-	 * @return $this
-	 * @see setUsingCache()
-	 */
-	public function disableCache() {
-		return $this->setUsingCache(false);
 	}
 	
 	/**
@@ -83,10 +107,10 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	}
 	
 	/**
-	 * Set the whereclause
+	 * Set the where clause
 	 *
-	 * @param string $condition
-	 * @param string $equality
+	 * @param array|string $condition
+	 * @param string $operator
 	 * @param string $value
 	 * @return \Orpheus\SQLRequest\SQLSelectRequest
 	 *
@@ -96,19 +120,47 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * If $equality is provided but $value is not, $equality is the value and where are using a smart comparator, e.g where('id', '5')
 	 * All examples return the same results. Smart comparator is IN for array values and = for all other.
 	 */
-	public function where($condition, $equality = null, $value = null) {
-		if( $equality !== null ) {
-			if( $value === null ) {
-				$value = $equality;
-				$equality = is_array($value) ? 'IN' : '=';
+	public function where($condition, $operator = null, $value = null) {
+		$where = $this->get('where', array());
+		$where[] = $this->formatCondition($condition, $operator, $value);
+		return $this->sget('where', $where);
+	}
+	
+	/**
+	 * @param array|array[]|string string $condition
+	 * @param string|mixed|null $operator Value or operator
+	 * @param mixed|null $value
+	 */
+	public function formatCondition($condition, $operator, $value) {
+		if( is_array($condition) ) {
+			if( $condition && is_array($condition[0]) ) {
+				// Array of array => Multiple conditions, we use the OR operator
+				$conditionStr = '';
+				// Array of string or array of object
+				foreach( $condition as $conditionRow ) {
+					$conditionStr .= ($conditionStr ? ' OR ' : '') .
+						$this->formatCondition($conditionRow, null, null);
+					// Fall into the One condition
+				}
+				return '(' . $conditionStr . ')';
+			} else {
+				// One condition
+				return $this->formatCondition($condition[0],
+					isset($condition[1]) ? $condition[1] : null,
+					isset($condition[2]) ? $condition[2] : null
+				);
 			}
-			$condition = $this->escapeIdentifier($condition) . ' ' . $equality . ' ' . (is_array($value) ?
+		}
+		if( $operator !== null ) {
+			if( $value === null ) {
+				$value = $operator;
+				$operator = is_array($value) ? 'IN' : '=';
+			}
+			$condition = $this->escapeIdentifier($condition) . ' ' . $operator . ' ' . (is_array($value) ?
 					'(' . $this->sqlAdapter->formatValueList($value) . ')' :
 					$this->escapeValue(is_object($value) ? id($value) : $value));
 		}
-		$where = $this->get('where', array());
-		$where[] = $condition;
-		return $this->sget('where', $where);
+		return $condition;
 	}
 	
 	/**
@@ -166,11 +218,47 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @param string $join
 	 * @return $this
+	 * @throws Exception
 	 */
-	public function join($join) {
-		$joins = $this->get('join', array());
-		$joins[] = $join;
+	public function join($entity, &$alias = null, $byMyField = null, $byTheirField = null, $mandatory = false) {
+		$joins = $this->get('join', []);
+		if( is_string($entity) && func_num_args() === 1 ) {
+			// Raw join string
+			$joins[] = $entity;
+		} else {
+			// Smart one
+			if( !$byMyField && !$byTheirField ) {
+				throw new Exception('Unable to generate smart join with both missing $byMyField & $byTheirField parameters');
+			}
+			$isClass = class_exists($entity);
+			if( !$byMyField ) {
+				$byMyField = $this->idField;
+			}
+			if( !$byTheirField ) {
+				if( !$isClass ) {
+					throw new Exception('Unable to generate smart join with missing $byTheirField parameters');
+				}
+				$byTheirField = $entity::getIDField();
+			}
+			if( !$alias ) {
+				$number = count($joins) + 1;
+				$alias = 'j' . $number;
+			}
+			$joins[] = (object) [
+				'table'     => class_exists($entity) ? $entity::getTable() : $entity,
+				'alias'     => $alias,
+				'condition' => sprintf('%s = %s', $this->escapeIdentifier($alias . '.' . $byTheirField), $this->escapeIdentifier($this->getEntityName() . '.' . $byMyField)),
+				'mandatory' => $mandatory
+			];
+		}
 		return $this->sget('join', $joins);
+	}
+	
+	/**
+	 * Get the name to use in SQL Query
+	 */
+	public function getEntityName() {
+		return $this->get('alias') ?: $this->get('table');
 	}
 	
 	/**
@@ -179,6 +267,27 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 */
 	public function alias($alias) {
 		return $this->sget('alias', $alias);
+	}
+	
+	/**
+	 * @param string $alias
+	 * @param boolean $defaultOnly
+	 * @return string
+	 */
+	public function setAlias($alias, $defaultOnly = false) {
+		if( $defaultOnly ) {
+			// Set only if undefined
+			$value = $this->get('alias');
+			if( $value === null ) {
+				$this->set('alias', $alias);
+			} else {
+				$alias = $value;
+			}
+		} else {
+			// Force to set alias
+			$this->set('alias', $alias);
+		}
+		return $alias;
 	}
 	
 	/**
@@ -208,16 +317,6 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	}
 	
 	/**
-	 * Set the output to be an array
-	 *
-	 * @return $this
-	 */
-	public function asArray() {
-		return $this->output(SQLAdapter::ARR_FIRST);
-	}
-	
-	
-	/**
 	 * Set the output to be a list of array
 	 *
 	 * @return $this
@@ -230,6 +329,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Test if the query has any result
 	 *
 	 * @return boolean
+	 * @throws Exception
 	 */
 	public function exists() {
 		return !!$this->count(1);
@@ -239,8 +339,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Count the number of result of this query
 	 *
 	 * @param int $max The max number where are expecting
-	 * @throws Exception
 	 * @return int
+	 * @throws Exception
 	 */
 	public function count($max = '') {
 		$countKey = '0rpHeus_Count';
@@ -248,43 +348,62 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 		
 		$result = $query->set('what', 'COUNT(*) ' . $countKey)
 			->from('(' . $this->getQuery() . ') oq')
-			->asArray()->run();
+			->asArray()
+			->run();
 		
 		return isset($result[$countKey]) ? $result[$countKey] : 0;
 	}
 	
 	/**
-	 * The current fetch statement
+	 * Set the output to be an array
 	 *
-	 * @var PDOStatement
+	 * @return $this
 	 */
-	protected $fetchLastStatement;
+	public function asArray() {
+		return $this->output(SQLAdapter::ARR_FIRST);
+	}
 	
 	/**
-	 * The current fetch is expecting an object
-	 *
-	 * @var boolean
+	 * {@inheritDoc}
+	 * @see Iterator::current()
 	 */
-	protected $fetchIsObject;
+	public function current() {
+		return $this->currentRow;
+	}
 	
 	/**
-	 * The current index
-	 *
-	 * @var int
+	 * {@inheritDoc}
+	 * @see Iterator::key()
 	 */
-	protected $currentIndex;
+	public function key() {
+		return $this->currentIndex;
+	}
 	
 	/**
-	 * The current row
-	 *
-	 * @var mixed
+	 * {@inheritDoc}
+	 * @see Iterator::valid()
 	 */
-	protected $currentRow;
+	public function valid() {
+		return $this->fetchLastStatement != null && $this->currentRow != null;
+	}
 	
-	protected function startFetching() {
-		$this->fetchIsObject = $this->get('output', SQLAdapter::ARR_OBJECTS) === SQLAdapter::ARR_OBJECTS;
-		$this->set('output', SQLAdapter::STATEMENT);
-		$this->fetchLastStatement = $this->run();
+	/**
+	 * {@inheritDoc}
+	 * @see Iterator::rewind()
+	 */
+	public function rewind() {
+		$this->currentIndex = -1;
+		$this->currentRow = null;
+		$this->next();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @see Iterator::next()
+	 */
+	public function next() {
+		$this->currentRow = $this->fetch();
+		$this->currentIndex++;
 	}
 	
 	/**
@@ -309,6 +428,12 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 		}
 		$class = $this->class;
 		return $class::load($row, true, $this->usingCache);
+	}
+	
+	protected function startFetching() {
+		$this->fetchIsObject = $this->get('output', SQLAdapter::ARR_OBJECTS) === SQLAdapter::ARR_OBJECTS;
+		$this->set('output', SQLAdapter::STATEMENT);
+		$this->fetchLastStatement = $this->run();
 	}
 	
 	/**
@@ -345,50 +470,6 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 			}
 		}
 		return $r;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @see Iterator::next()
-	 */
-	public function next() {
-		$this->currentRow = $this->fetch();
-		$this->currentIndex++;
-		//		$this->currentIndex = $this->currentRow !== null ? ($this->currentIndex !== null ? $this->currentIndex + 1 : 0) : null;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @see Iterator::current()
-	 */
-	public function current() {
-		return $this->currentRow;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @see Iterator::key()
-	 */
-	public function key() {
-		return $this->currentIndex;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @see Iterator::valid()
-	 */
-	public function valid() {
-		return $this->fetchLastStatement != null && $this->currentRow != null;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @see Iterator::rewind()
-	 */
-	public function rewind() {
-		$this->currentIndex = -1;
-		$this->currentRow = null;
-		$this->next();
 	}
 	
 }
