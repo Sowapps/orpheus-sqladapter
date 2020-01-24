@@ -66,18 +66,6 @@ abstract class SQLRequest {
 	}
 	
 	/**
-	 * Create a select request
-	 *
-	 * @param \Orpheus\SQLAdapter\SQLAdapter $sqlAdapter
-	 * @param string $idField The ID field
-	 * @param string $class The class used to instanciate entries
-	 * @return SQLSelectRequest
-	 */
-	public static function select($sqlAdapter = null, $idField = 'id', $class = null) {
-		return new SQLSelectRequest($sqlAdapter, $idField, $class);
-	}
-	
-	/**
 	 * Get object as string
 	 *
 	 * @return string
@@ -171,6 +159,15 @@ abstract class SQLRequest {
 	}
 	
 	/**
+	 * get the ID field
+	 *
+	 * @return string
+	 */
+	public function getIDField() {
+		return $this->idField;
+	}
+	
+	/**
 	 * Set/Get the table parameter
 	 *
 	 * @param string $table
@@ -221,5 +218,17 @@ abstract class SQLRequest {
 	 */
 	public function escapeValue($value) {
 		return $this->sqlAdapter->escapeValue($value);
+	}
+	
+	/**
+	 * Create a select request
+	 *
+	 * @param \Orpheus\SQLAdapter\SQLAdapter $sqlAdapter
+	 * @param string $idField The ID field
+	 * @param string $class The class used to instanciate entries
+	 * @return SQLSelectRequest
+	 */
+	public static function select($sqlAdapter = null, $idField = 'id', $class = null) {
+		return new SQLSelectRequest($sqlAdapter, $idField, $class);
 	}
 }

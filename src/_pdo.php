@@ -145,7 +145,7 @@ function ensure_pdoinstance($instance = null) {
 			$pdoInstances[$instance] = new PDO(
 				"mysql:dbname={$instanceSettings['dbname']};host={$instanceSettings['host']}" . (!empty($instanceSettings['port']) ? ';port=' . $instanceSettings['port'] : ''),
 				$instanceSettings['user'], $instanceSettings['passwd'],
-				array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8", PDO::MYSQL_ATTR_DIRECT_QUERY => true)
+				[PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8", PDO::MYSQL_ATTR_DIRECT_QUERY => true]
 			);
 			$pdoInstances[$instance]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			
@@ -210,15 +210,21 @@ function pdo_instance($instance) {
 function pdo_query($query, $fetch = PDOQUERY, $instance = null) {
 	global $pdoInstances, $DBS;
 	// Checks connection
-	$instance = ensure_pdoinstance($instance);
-	if( empty($pdoInstances[$instance]) ) {
-		return;
+	if( $instance instanceof SQLAdapter ) {
+		$pdoInstance = $instance->getPdo();
+		$driver = $instance->getDriver();
+	} else {
+		$instance = ensure_pdoinstance($instance);
+		if( empty($pdoInstances[$instance]) ) {
+			return;
+		}
+		$instanceSettings = $DBS[$instance];
+		$pdoInstance = $pdoInstances[$instance];
+		$driver = $instanceSettings['driver'];
 	}
-	$instanceSettings = $DBS[$instance];
-	$pdoInstance = $pdoInstances[$instance];
 	
 	
-	if( in_array($instanceSettings['driver'], array('mysql', 'mssql', 'pgsql', 'sqlite')) ) {
+	if( in_array($driver, ['mysql', 'mssql', 'pgsql', 'sqlite']) ) {
 		
 		try {
 			$ERR_ACTION = 'BINTEST';
@@ -231,26 +237,22 @@ function pdo_query($query, $fetch = PDOQUERY, $instance = null) {
 			if( bintest($fetch, PDOSTMT) ) {
 				return $PDOSQuery;
 				
-			} else {
-				if( bintest($fetch, PDOFETCHALL) ) {
-					$ERR_ACTION = 'FETCHALL';
-					if( bintest($fetch, PDOFETCHFIRSTCOL) ) {
-						$returnValue = $PDOSQuery->fetchAll(PDO::FETCH_ASSOC | PDO::FETCH_COLUMN, 0);
-					} else {
-						$returnValue = $PDOSQuery->fetchAll(PDO::FETCH_ASSOC);
-					}
-					
+			} elseif( bintest($fetch, PDOFETCHALL) ) {
+				$ERR_ACTION = 'FETCHALL';
+				if( bintest($fetch, PDOFETCHFIRSTCOL) ) {
+					$returnValue = $PDOSQuery->fetchAll(PDO::FETCH_ASSOC | PDO::FETCH_COLUMN, 0);
 				} else {
-					if( bintest($fetch, PDOFETCH) ) {
-						$ERR_ACTION = 'FETCH';
-						if( bintest($fetch, PDOFETCHFIRSTCOL) ) {
-							$returnValue = $PDOSQuery->fetchColumn(0);
-						} else {
-							$returnValue = $PDOSQuery->fetch(PDO::FETCH_ASSOC);
-						}
-						$PDOSQuery->fetchAll();
-					}
+					$returnValue = $PDOSQuery->fetchAll(PDO::FETCH_ASSOC);
 				}
+				
+			} elseif( bintest($fetch, PDOFETCH) ) {
+				$ERR_ACTION = 'FETCH';
+				if( bintest($fetch, PDOFETCHFIRSTCOL) ) {
+					$returnValue = $PDOSQuery->fetchColumn(0);
+				} else {
+					$returnValue = $PDOSQuery->fetch(PDO::FETCH_ASSOC);
+				}
+				$PDOSQuery->fetchAll();
 			}
 			$PDOSQuery->closeCursor();
 			unset($PDOSQuery);

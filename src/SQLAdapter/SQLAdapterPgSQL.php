@@ -5,13 +5,12 @@
 
 namespace Orpheus\SQLAdapter;
 
-use PDO;
-
 /**
  * The MYSQL Adapter class
- * 
  * This class is the sql adapter for MySQL.
-*/
+ *
+ * @deprecated This class is outdated, it requires to be updated
+ */
 class SQLAdapterPgSQL extends SQLAdapter {
 
 	/**

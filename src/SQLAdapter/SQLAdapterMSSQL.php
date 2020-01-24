@@ -29,16 +29,18 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 *
 	 * @var array
 	 */
-	protected static $selectDefaults = array(
-		'what'			=> '*',//* => All fields
-		'where'			=> '',//Additionnal Whereclause
-		'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
-		'number'		=> -1,//-1 => All
-		'number_percent'=> false,// false => No Percent option
-		'offset'		=> 0,//0 => The start
-		'output'		=> SQLAdapter::ARR_ASSOC,//Associative Array
-	);
-
+	protected static $selectDefaults = [
+		'what'           => '',//table.* => All fields
+		'join'           => '',// No join
+		'where'          => '',//Additionnal Whereclause
+		'orderby'        => '',//Ex: Field1 ASC, Field2 DESC
+		'groupby'        => '',//Ex: Field
+		'number'         => -1,//-1 => All
+		'number_percent' => false,// false => No Percent option
+		'offset'         => 0,//0 => The start
+		'output'         => SQLAdapter::ARR_ASSOC,//Associative Array
+	];
+	
 	/**
 	 * Update defaults options
 	 *
@@ -97,21 +99,27 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
 		}
+		if( !$options['number'] && $options['output'] == static::ARR_FIRST ) {
+			$options['number'] = 1;
+		}
+		$isFromTable = $options['table'][0] != '(';
+		$TABLE = $isFromTable ? static::escapeIdentifier($options['table']) : $options['table'];
+		// Auto-satisfy join queries
 		if( empty($options['what']) ) {
-			throw new Exception('No selection');
+			$options['what'] = '*';
 		}
-		$OPTIONS	= '';
-		$WHAT	= is_array($options['what']) ? implode(', ', $options['what']) : $options['what'];
-		$WC		= !empty($options['where']) ? 'WHERE '.$options['where'] : '';
+		$OPTIONS = '';
+		$WHAT = is_array($options['what']) ? implode(', ', $options['what']) : $options['what'];
+		$WC = $options['where'] ? 'WHERE ' . (is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
 		if( empty($options['orderby']) ) {
-			$options['orderby'] = $this->IDFIELD; 
+			$options['orderby'] = $this->IDFIELD;
 		}
-		$ORDERBY = 'ORDER BY '.$options['orderby'];
+		$ORDERBY = 'ORDER BY ' . $options['orderby'];
 		
 		if( $options['number'] > 0 ) {
 			// ORDER BY is required
-			$LIMIT_WC = ( $options['offset'] > 0 ) ? $options['offset'].' AND '.($options['offset']+$options['number']) : '<= '.$options['number'];
-			$QUERY = "SELECT * FROM ( SELECT {$WHAT}, row_number() OVER ({$ORDERBY}) AS rownum FROM {$options['table']} {$WC} ) AS a WHERE a.rownum {$LIMIT_WC};";
+			$LIMIT_WC = ($options['offset'] > 0) ? $options['offset'] . ' AND ' . ($options['offset'] + $options['number']) : '<= ' . $options['number'];
+			$QUERY = "SELECT * FROM ( SELECT {$WHAT}, row_number() OVER ({$ORDERBY}) AS rownum FROM {$TABLE} {$WC} ) AS a WHERE a.rownum {$LIMIT_WC};";
 			
 		} else {
 			$QUERY = "SELECT {$OPTIONS} {$WHAT} FROM {$options['table']} {$WC} {$ORDERBY};";
@@ -147,16 +155,17 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( empty($options['what']) ) {
 			throw new Exception('No field');
 		}
-		$WC	= ( !empty($options['where']) ) ? 'WHERE '.$options['where'] : '';
+		$WC = (!empty($options['where'])) ? 'WHERE ' . $options['where'] : '';
 		if( empty($options['orderby']) ) {
-			$options['orderby'] = $this->IDFIELD; 
+			$options['orderby'] = $this->IDFIELD;
 		}
-		$ORDERBY	= 'ORDER BY '.$options['orderby'];
-		$WHAT		= is_array($options['what']) ? implode(', ', $options['what']) : $options['what'];
+		$ORDERBY = 'ORDER BY ' . $options['orderby'];
+		
+		$WHAT = $this->formatFieldList($options['what']);
 		
 		if( $options['number'] > 0 ) {
 			// ORDER BY is required
-			$LIMIT_WC = ( $options['offset'] > 0 ) ? $options['offset'].' AND '.($options['offset']+$options['number']) : '<= '.$options['number'];
+			$LIMIT_WC = ($options['offset'] > 0) ? $options['offset'] . ' AND ' . ($options['offset'] + $options['number']) : '<= ' . $options['number'];
 			$QUERY = "WITH a AS ( SELECT *, row_number() OVER ({$ORDERBY}) AS rownum FROM {$options['table']} {$WC} )
 				UPDATE a SET {$WHAT} WHERE a.rownum {$LIMIT_WC};";
 			
@@ -251,13 +260,21 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	}
 	
 	/**
-	 * 
+	 *
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLAdapter\SQLAdapter::lastID()
 	 * @param string $table The table to get the last inserted id
 	 */
- 	public function lastID($table) {
+	public function lastID($table) {
 		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);
 		return $r['LAST_ID'];
+	}
+	
+	protected function connect(array $config) {
+		$this->pdo = new PDO(
+			"dblib:dbname={$config['dbname']};host={$config['host']}" . (!empty($config['port']) ? ':' . $config['port'] : ''),
+			$config['user'], $config['passwd']
+		);
+		$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	}
 }

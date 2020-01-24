@@ -98,7 +98,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
 	 */
 	public function having($condition = null) {
-		$having = $this->get('having', array());
+		$having = $this->get('having', []);
 		if( !$condition ) {
 			return $having;
 		}
@@ -121,7 +121,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * All examples return the same results. Smart comparator is IN for array values and = for all other.
 	 */
 	public function where($condition, $operator = null, $value = null) {
-		$where = $this->get('where', array());
+		$where = $this->get('where', []);
 		$where[] = $this->formatCondition($condition, $operator, $value);
 		return $this->sget('where', $where);
 	}
@@ -248,7 +248,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 				'table'     => class_exists($entity) ? $entity::getTable() : $entity,
 				'alias'     => $alias,
 				'condition' => sprintf('%s = %s', $this->escapeIdentifier($alias . '.' . $byTheirField), $this->escapeIdentifier($this->getEntityName() . '.' . $byMyField)),
-				'mandatory' => $mandatory
+				'mandatory' => $mandatory,
 			];
 		}
 		return $this->sget('join', $joins);
@@ -444,7 +444,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	public function run() {
 		$options = $this->parameters;
 		$onlyOne = $objects = 0;
-		if( in_array($options['output'], array(SQLAdapter::ARR_OBJECTS, SQLAdapter::OBJECT)) ) {
+		if( in_array($options['output'], [SQLAdapter::ARR_OBJECTS, SQLAdapter::OBJECT]) ) {
 			if( $options['output'] == SQLAdapter::OBJECT ) {
 				$options['number'] = 1;
 				$onlyOne = 1;
@@ -456,8 +456,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 		if( is_object($r) ) {
 			return $r;
 		}
-		if( empty($r) && in_array($options['output'], array(SQLAdapter::ARR_ASSOC, SQLAdapter::ARR_OBJECTS, SQLAdapter::ARR_FIRST)) ) {
-			return $onlyOne && $objects ? null : array();
+		if( empty($r) && in_array($options['output'], [SQLAdapter::ARR_ASSOC, SQLAdapter::ARR_OBJECTS, SQLAdapter::ARR_FIRST]) ) {
+			return $onlyOne && $objects ? null : [];
 		}
 		$class = $this->class;
 		if( !empty($r) && $objects ) {

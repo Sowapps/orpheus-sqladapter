@@ -20,7 +20,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 *
 	 * @var array
 	 */
-	protected static $selectDefaults = array(
+	protected static $selectDefaults = [
 		'what'     => '',// table.* => All fields
 		'join'     => '',// No join
 		'where'    => '',// Additionnal Whereclause
@@ -31,14 +31,14 @@ class SQLAdapterMySQL extends SQLAdapter {
 		'output'   => SQLAdapter::ARR_ASSOC,// Associative Array
 		'alias'    => null,// No alias
 		'distinct' => null,// No remove of duplicates
-	);
+	];
 	
 	/**
 	 * Update defaults options
 	 *
 	 * @var array
 	 */
-	protected static $updateDefaults = array(
+	protected static $updateDefaults = [
 		'lowpriority' => false,//false => Not low priority
 		'ignore'      => false,//false => Not ignore errors
 		'where'       => '',//Additionnal Whereclause
@@ -46,14 +46,14 @@ class SQLAdapterMySQL extends SQLAdapter {
 		'number'      => -1,//-1 => All
 		'offset'      => 0,//0 => The start
 		'output'      => SQLAdapter::NUMBER,//Number of updated lines
-	);
+	];
 	
 	/**
 	 * Delete defaults options
 	 *
 	 * @var array
 	 */
-	protected static $deleteDefaults = array(
+	protected static $deleteDefaults = [
 		'lowpriority' => false,//false => Not low priority
 		'quick'       => false,//false => Not merge index leaves
 		'ignore'      => false,//false => Not ignore errors
@@ -62,29 +62,20 @@ class SQLAdapterMySQL extends SQLAdapter {
 		'number'      => -1,//-1 => All
 		'offset'      => 0,//0 => The start
 		'output'      => SQLAdapter::NUMBER,//Number of deleted lines
-	);
+	];
 	
 	/**
 	 * Insert defaults options
 	 *
 	 * @var array
 	 */
-	protected static $insertDefaults = array(
+	protected static $insertDefaults = [
 		'lowpriority' => false,//false => Not low priority
 		'delayed'     => false,//false => Not delayed
 		'ignore'      => false,//false => Not ignore errors
 		'into'        => true,//true => INSERT INTO
 		'output'      => SQLAdapter::NUMBER,//Number of inserted lines
-	);
-	
-	/**
-	 * Get the driven string
-	 *
-	 * @return string
-	 */
-	public static function getDriver() {
-		return 'mysql';
-	}
+	];
 	
 	/**
 	 * Select something from database
@@ -96,7 +87,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 *
 	 * Using pdo_query(), It parses the query from an array to a SELECT query.
 	 */
-	public function select(array $options = array()) {
+	public function select(array $options = []) {
 		$options += self::$selectDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -110,10 +101,8 @@ class SQLAdapterMySQL extends SQLAdapter {
 		// Auto-satisfy join queries
 		if( empty($options['what']) ) {
 			$options['what'] = $isFromTable ? (!empty($options['alias']) ? $options['alias'] : $TABLE) . '.*' : '*';
-		} else {
-			if( is_array($options['what']) ) {
-				$options['what'] = implode(', ', $options['what']);
-			}
+		} elseif( is_array($options['what']) ) {
+			$options['what'] = implode(', ', $options['what']);
 		}
 		$WHAT = $options['what'];
 		$DISTINCT = $options['distinct'] ? 'DISTINCT' : '';
@@ -196,7 +185,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 *
 	 * Using pdo_query(), It parses the query from an array to a UPDATE query.
 	 */
-	public function update(array $options = array()) {
+	public function update(array $options = []) {
 		$options += self::$updateDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -209,8 +198,8 @@ class SQLAdapterMySQL extends SQLAdapter {
 		$OPTIONS .= (!empty($options['ignore'])) ? ' IGNORE' : '';
 		
 		$WHAT = $this->formatFieldList($options['what']);
-		$WC = (!empty($options['where'])) ? 'WHERE ' . $options['where'] : '';
-		$ORDER_BY = (!empty($options['orderby'])) ? 'ORDER BY ' . $options['orderby'] : '';
+		$WC = !empty($options['where']) ? 'WHERE ' . $options['where'] : '';
+		$ORDER_BY = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
 		$LIMIT = ($options['number'] > 0) ? 'LIMIT ' .
 			(($options['offset'] > 0) ? $options['offset'] . ', ' : '') . $options['number'] : '';
 		$TABLE = static::escapeIdentifier($options['table']);
@@ -232,7 +221,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 * Accept only the String syntax for what option.
 	 * @throws Exception
 	 */
-	public function insert(array $options = array()) {
+	public function insert(array $options = []) {
 		$options += self::$insertDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -241,7 +230,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 			throw new Exception('No field');
 		}
 		$OPTIONS = '';
-		$OPTIONS .= (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : (!empty($options['delayed'])) ? ' DELAYED' : '';
+		$OPTIONS .= (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : (!empty($options['delayed']) ? ' DELAYED' : '');
 		$OPTIONS .= (!empty($options['ignore'])) ? ' IGNORE' : '';
 		$OPTIONS .= (!empty($options['into'])) ? ' INTO' : '';
 		
@@ -258,7 +247,6 @@ class SQLAdapterMySQL extends SQLAdapter {
 				$WHAT = 'VALUES ' . $WHAT;
 				//Is associative fields Arrays
 			} else {
-				// 				$WHAT	= 'SET '.parseFields($options['what'], '`');
 				$WHAT = 'SET ' . $this->formatFieldList($options['what']);
 			}
 			
@@ -284,7 +272,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 * It parses the query from an array to a DELETE query.
 	 * @throws Exception
 	 */
-	public function delete(array $options = array()) {
+	public function delete(array $options = []) {
 		$options += self::$deleteDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -315,7 +303,8 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 * It requires a successful call of insert() !
 	 */
 	public function lastID($table) {
-		return $this->query('SELECT LAST_INSERT_ID();', PDOFETCHFIRSTCOL);
+		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);
+		return $r['LAST_ID'];
 	}
 	
 	/**
@@ -329,8 +318,17 @@ class SQLAdapterMySQL extends SQLAdapter {
 		$this->pdo = new PDO(
 			"mysql:dbname={$config['dbname']};host={$config['host']}" . (!empty($config['port']) ? ';port=' . $config['port'] : ''),
 			$config['user'], $config['passwd'],
-			array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8', PDO::MYSQL_ATTR_DIRECT_QUERY => true)
+			[PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8', PDO::MYSQL_ATTR_DIRECT_QUERY => true]
 		);
 		$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	}
+	
+	/**
+	 * Get the driven string
+	 *
+	 * @return string
+	 */
+	public static function getDriver() {
+		return 'mysql';
 	}
 }
