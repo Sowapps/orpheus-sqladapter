@@ -23,30 +23,51 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @var boolean
 	 */
 	protected $usingCache = true;
+	
 	/**
 	 * The current fetch statement
 	 *
 	 * @var PDOStatement
 	 */
 	protected $fetchLastStatement;
+	
 	/**
 	 * The current fetch is expecting an object
 	 *
 	 * @var boolean
 	 */
 	protected $fetchIsObject;
+	
 	/**
 	 * The current index
 	 *
 	 * @var int
 	 */
 	protected $currentIndex;
+	
 	/**
 	 * The current row
 	 *
 	 * @var mixed
 	 */
 	protected $currentRow;
+	
+	/**
+	 * The filter list
+	 *
+	 * @var callable[]
+	 */
+	protected $filters = [];
+	
+	/**
+	 * Filter results using callable, the callable must return a boolean
+	 *
+	 * @return $this
+	 */
+	public function filter(callable $filter) {
+		$this->filters[] = $filter;
+		return $this;
+	}
 	
 	/**
 	 * Disable the class objects' cache
@@ -112,7 +133,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param array|string $condition
 	 * @param string $operator
 	 * @param string $value
-	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @param bool $escapeValue
+	 * @return static
 	 *
 	 * If only $condition is provided, this is used as complete string, e.g where("id = 5")
 	 * If $equality & $value are provided, it uses it with $condition as a field (identifier), e.g where('id', '=', '5')
@@ -120,18 +142,20 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * If $equality is provided but $value is not, $equality is the value and where are using a smart comparator, e.g where('id', '5')
 	 * All examples return the same results. Smart comparator is IN for array values and = for all other.
 	 */
-	public function where($condition, $operator = null, $value = null) {
+	public function where($condition, $operator = null, $value = null, $escapeValue = true) {
 		$where = $this->get('where', []);
-		$where[] = $this->formatCondition($condition, $operator, $value);
+		$where[] = $this->formatCondition($condition, $operator, $value, $escapeValue);
 		return $this->sget('where', $where);
 	}
 	
 	/**
-	 * @param array|array[]|string string $condition
+	 * @param string $condition The condition or the field
 	 * @param string|mixed|null $operator Value or operator
-	 * @param mixed|null $value
+	 * @param mixed|null $value The value to use
+	 * @param bool $escapeValue Should the value be escaped ?
+	 * @return string
 	 */
-	public function formatCondition($condition, $operator, $value) {
+	public function formatCondition($condition, $operator, $value, $escapeValue = true) {
 		if( is_array($condition) ) {
 			if( $condition && is_array($condition[0]) ) {
 				// Array of array => Multiple conditions, we use the OR operator
@@ -147,7 +171,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 				// One condition
 				return $this->formatCondition($condition[0],
 					isset($condition[1]) ? $condition[1] : null,
-					isset($condition[2]) ? $condition[2] : null
+					isset($condition[2]) ? $condition[2] : null,
+					isset($condition[3]) ? $condition[3] : true
 				);
 			}
 		}
@@ -156,9 +181,18 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 				$value = $operator;
 				$operator = is_array($value) ? 'IN' : '=';
 			}
-			$condition = $this->escapeIdentifier($condition) . ' ' . $operator . ' ' . (is_array($value) ?
-					'(' . $this->sqlAdapter->formatValueList($value) . ')' :
-					$this->escapeValue(is_object($value) ? id($value) : $value));
+			if( is_array($value) ) {
+				$value = '(' . $this->sqlAdapter->formatValueList($value) . ')';
+			} else {
+				// ID Could be a string, so we have to escape it too
+				if( is_object($value) ) {
+					$value = id($value);
+				}
+				if( $escapeValue ) {
+					$value = $this->escapeValue($value);
+				}
+			}
+			$condition = $this->escapeIdentifier($condition) . ' ' . $operator . ' ' . $value;
 		}
 		return $condition;
 	}
@@ -402,7 +436,11 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @see Iterator::next()
 	 */
 	public function next() {
-		$this->currentRow = $this->fetch();
+		do {
+			$this->currentRow = $this->fetch();
+			// Pass the filtered rows
+		} while( $this->currentRow && !$this->isRowPassingFilters($this->currentRow) );
+		// The index is not filtered
 		$this->currentIndex++;
 	}
 	
@@ -452,24 +490,46 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 			$options['output'] = SQLAdapter::ARR_ASSOC;
 			$objects = 1;
 		}
+		$options['idField'] = $this->getIDField();
 		$r = $this->sqlAdapter->select($options);
 		if( is_object($r) ) {
 			return $r;
 		}
-		if( empty($r) && in_array($options['output'], [SQLAdapter::ARR_ASSOC, SQLAdapter::ARR_OBJECTS, SQLAdapter::ARR_FIRST]) ) {
+		if( !$r && in_array($options['output'], [SQLAdapter::ARR_ASSOC, SQLAdapter::ARR_OBJECTS, SQLAdapter::ARR_FIRST]) ) {
 			return $onlyOne && $objects ? null : [];
 		}
 		$class = $this->class;
-		if( !empty($r) && $objects ) {
+		if( $r && $objects ) {
 			if( $onlyOne ) {
 				$r = $class::load($r[0], true, $this->usingCache);
-			} else {
-				foreach( $r as &$rdata ) {
-					$rdata = $class::load($rdata, true, $this->usingCache);
+				if( !$r || !$this->isRowPassingFilters($r) ) {
+					$r = null;
 				}
+			} else {
+				$results = [];
+				foreach( $r as $rdata ) {
+					$row = $class::load($rdata, true, $this->usingCache);
+					if( !$row || $this->isRowPassingFilters($row) ) {
+						$results[] = $row;
+					}
+				}
+				$r = $results;
 			}
 		}
 		return $r;
+	}
+	
+	/**
+	 * @param $row
+	 * @return bool
+	 */
+	public function isRowPassingFilters($row) {
+		foreach( $this->filters as $filter ) {
+			if( !call_user_func($filter, $row) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 }

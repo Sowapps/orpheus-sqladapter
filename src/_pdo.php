@@ -17,6 +17,7 @@
 
 use Orpheus\Config\IniConfig;
 use Orpheus\SQLAdapter\Exception\SQLException;
+use Orpheus\SQLAdapter\SQLAdapter;
 
 
 defifn('DBCONF', 'database');
@@ -46,19 +47,17 @@ function pdo_getDefaultInstance() {
 		// Default is constant PDODEFINSTNAME
 		$instance = PDODEFINSTNAME;
 		
-	} else {
-		if( !empty($DBS) && is_array($DBS) ) {
-			if( is_array(current($DBS)) ) {
-				// Default is the first value of the multidimensional array DB Settings
-				$instance = key($DBS);
-			} else {
-				// Default is 'default' and value is all the contents of DB Settings
-				$instance = 'default';
-				$DBS[$instance] = $DBS;
-			}
+	} elseif( !empty($DBS) && is_array($DBS) ) {
+		if( is_array(current($DBS)) ) {
+			// Default is the first value of the multidimensional array DB Settings
+			$instance = key($DBS);
 		} else {
-			pdo_error('Database configuration not found, define constant PDODEFINSTNAME to set the default instance.', 'Instance Definition');
+			// Default is 'default' and value is all the contents of DB Settings
+			$instance = 'default';
+			$DBS[$instance] = $DBS;
 		}
+	} else {
+		pdo_error('Database configuration not found, define constant PDODEFINSTNAME to set the default instance.', 'Instance Definition');
 	}
 	return $instance;
 }
@@ -223,8 +222,7 @@ function pdo_query($query, $fetch = PDOQUERY, $instance = null) {
 		$driver = $instanceSettings['driver'];
 	}
 	
-	
-	if( in_array($driver, ['mysql', 'mssql', 'pgsql', 'sqlite']) ) {
+	if( in_array($driver, ['mysql', 'dblib', 'pgsql', 'sqlite']) ) {
 		
 		try {
 			$ERR_ACTION = 'BINTEST';

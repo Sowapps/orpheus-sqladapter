@@ -9,21 +9,14 @@ use PDO;
 
 /**
  * The MSSQL Adapter class
- * 
+ *
  * This class is the sql adapter for MSSQL.
- * 
+ *
  * Install method for debian:
  * http://atutility.com/2007/09/14/install-pdo-pdo_sqlite-pdo_dblib-pdo_mysql
  */
 class SQLAdapterMSSQL extends SQLAdapter {
 	
-	/**
-	 * Last ID
-	 * 
-	 * @var integer
-	 */
-	protected $lastID = 0;
-
 	/**
 	 * Select defaults options
 	 *
@@ -40,61 +33,64 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		'offset'         => 0,//0 => The start
 		'output'         => SQLAdapter::ARR_ASSOC,//Associative Array
 	];
-	
 	/**
 	 * Update defaults options
 	 *
 	 * @var array
 	 */
-	protected static $updateDefaults = array(
-		'lowpriority'	=> false,//false => Not low priority
-		'ignore'		=> false,//false => Not ignore errors
-		'where'			=> '',//Additionnal Whereclause
-		'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
-		'number'		=> -1,//-1 => All
-		'number_percent'=> false,// false => No Percent option
-		'offset'		=> 0,//0 => The start
-		'output'		=> SQLAdapter::NUMBER,//Number of updated lines
-	);
-
+	protected static $updateDefaults = [
+		'lowpriority'    => false,//false => Not low priority
+		'ignore'         => false,//false => Not ignore errors
+		'where'          => '',//Additionnal Whereclause
+		'orderby'        => '',//Ex: Field1 ASC, Field2 DESC
+		'number'         => -1,//-1 => All
+		'number_percent' => false,// false => No Percent option
+		'offset'         => 0,//0 => The start
+		'output'         => SQLAdapter::NUMBER,//Number of updated lines
+	];
 	/**
 	 * Delete defaults options
 	 *
 	 * @var array
 	 */
-	protected static $deleteDefaults = array(
-		'lowpriority'	=> false,//false => Not low priority
-		'quick'			=> false,//false => Not merge index leaves
-		'ignore'		=> false,//false => Not ignore errors
-		'where'			=> '',//Additionnal Whereclause
-		'orderby'		=> '',//Ex: Field1 ASC, Field2 DESC
-		'number'		=> -1,//-1 => All
-		'number_percent'=> false,// false => No Percent option
-		'offset'		=> 0,//0 => The start
-		'output'		=> SQLAdapter::NUMBER,//Number of deleted lines
-	);
-
+	protected static $deleteDefaults = [
+		'lowpriority'    => false,//false => Not low priority
+		'quick'          => false,//false => Not merge index leaves
+		'ignore'         => false,//false => Not ignore errors
+		'where'          => '',//Additionnal Whereclause
+		'orderby'        => '',//Ex: Field1 ASC, Field2 DESC
+		'number'         => -1,//-1 => All
+		'number_percent' => false,// false => No Percent option
+		'offset'         => 0,//0 => The start
+		'output'         => SQLAdapter::NUMBER,//Number of deleted lines
+	];
 	/**
 	 * Insert defaults options
 	 *
 	 * @var array
 	 */
-	protected static $insertDefaults = array(
-		'lowpriority'	=> false,//false => Not low priority
-		'delayed'		=> false,//false => Not delayed
-		'ignore'		=> false,//false => Not ignore errors
-		'into'			=> true,//true => INSERT INTO
-		'output'		=> SQLAdapter::NUMBER,//Number of inserted lines
-	);
+	protected static $insertDefaults = [
+		'lowpriority' => false,//false => Not low priority
+		'delayed'     => false,//false => Not delayed
+		'ignore'      => false,//false => Not ignore errors
+		'into'        => true,//true => INSERT INTO
+		'output'      => SQLAdapter::NUMBER,//Number of inserted lines
+	];
+	/**
+	 * Last ID
+	 *
+	 * @var integer
+	 */
+	protected $lastID = 0;
 	
 	/**
-	 * 
+	 *
 	 * {@inheritDoc}
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::select()
-	 * @see http://msdn.microsoft.com/en-us/library/aa259187%28v=sql.80%29.aspx
 	 * @param array $options The options used to build the query
+	 * @see http://msdn.microsoft.com/en-us/library/aa259187%28v=sql.80%29.aspx
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::select()
 	 */
-	public function select(array $options=array()) {
+	public function select(array $options = []) {
 		$options += self::$selectDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -108,46 +104,43 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( empty($options['what']) ) {
 			$options['what'] = '*';
 		}
+		$idField = !empty($options['idField']) ? $options['idField'] : $this->IDFIELD;
 		$OPTIONS = '';
 		$WHAT = is_array($options['what']) ? implode(', ', $options['what']) : $options['what'];
 		$WC = $options['where'] ? 'WHERE ' . (is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
-		if( empty($options['orderby']) ) {
-			$options['orderby'] = $this->IDFIELD;
-		}
-		$ORDERBY = 'ORDER BY ' . $options['orderby'];
+		$ORDERBY = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
 		
 		if( $options['number'] > 0 ) {
 			// ORDER BY is required
 			$LIMIT_WC = ($options['offset'] > 0) ? $options['offset'] . ' AND ' . ($options['offset'] + $options['number']) : '<= ' . $options['number'];
+			if( !$ORDERBY ) {
+				// Over is mandatory with row_number()
+				$ORDERBY = 'ORDER BY ' . $idField;
+			}
 			$QUERY = "SELECT * FROM ( SELECT {$WHAT}, row_number() OVER ({$ORDERBY}) AS rownum FROM {$TABLE} {$WC} ) AS a WHERE a.rownum {$LIMIT_WC};";
 			
 		} else {
 			$QUERY = "SELECT {$OPTIONS} {$WHAT} FROM {$options['table']} {$WC} {$ORDERBY};";
 		}
-		// Seems to now work with DB LIB
-// 		$OPTIONS = ( $options['number'] > 0 ) ?
-// 			' TOP '.$options['number'].( ($options['number_percent']) ? ' PERCENT' : '' ) : '';
-// 		SELECT * FROM ( SELECT row_number() OVER (ORDER BY ID) as rownum, * ) as A where A.rownum BETWEEN 3 and 5
-		if( $options['output'] == static::SQLQUERY ) {
+		if( $options['output'] === static::SQLQUERY ) {
 			return $QUERY;
 		}
-		$results = $this->query($QUERY, ($options['output'] == static::STATEMENT) ? PDOSTMT : PDOFETCHALL );
-		if( $options['output'] == static::ARR_OBJECTS ) {
-			foreach($results as &$r) {
-				$r = (object)$r;//stdClass
+		$results = $this->query($QUERY, ($options['output'] === static::STATEMENT) ? PDOSTMT : PDOFETCHALL);
+		if( $options['output'] === static::ARR_OBJECTS ) {
+			foreach( $results as &$r ) {
+				$r = (object) $r;//stdClass
 			}
 		}
-		return (!empty($results) && $options['output'] == static::ARR_FIRST) ?  $results[0] : $results;
+		return (!empty($results) && $options['output'] === static::ARR_FIRST) ? $results[0] : $results;
 	}
 	
 	/**
-	 * 
+	 *
 	 * {@inheritDoc}
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::update()
 	 * @see http://msdn.microsoft.com/en-us/library/ms177523.aspx
 	 * @param array $options The options used to build the query
 	 */
-	public function update(array $options=array()) {
+	public function update(array $options = []) {
 		$options += self::$updateDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -155,20 +148,21 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( empty($options['what']) ) {
 			throw new Exception('No field');
 		}
+		$idField = !empty($options['idField']) ? $options['idField'] : $this->IDFIELD;
 		$WC = (!empty($options['where'])) ? 'WHERE ' . $options['where'] : '';
-		if( empty($options['orderby']) ) {
-			$options['orderby'] = $this->IDFIELD;
-		}
-		$ORDERBY = 'ORDER BY ' . $options['orderby'];
+		$ORDERBY = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
 		
 		$WHAT = $this->formatFieldList($options['what']);
 		
 		if( $options['number'] > 0 ) {
 			// ORDER BY is required
 			$LIMIT_WC = ($options['offset'] > 0) ? $options['offset'] . ' AND ' . ($options['offset'] + $options['number']) : '<= ' . $options['number'];
+			if( !$ORDERBY ) {
+				// Over is mandatory with row_number()
+				$ORDERBY = 'ORDER BY ' . $idField;
+			}
 			$QUERY = "WITH a AS ( SELECT *, row_number() OVER ({$ORDERBY}) AS rownum FROM {$options['table']} {$WC} )
 				UPDATE a SET {$WHAT} WHERE a.rownum {$LIMIT_WC};";
-			
 		} else {
 			$QUERY = "UPDATE {$options['table']} SET {$WHAT} {$WC} {$ORDERBY};";
 		}
@@ -180,13 +174,13 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	}
 	
 	/**
-	 * 
+	 *
 	 * {@inheritDoc}
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::insert()
-	 * @see http://msdn.microsoft.com/en-us/library/ms174335.aspx
 	 * @param array $options The options used to build the query
+	 * @see http://msdn.microsoft.com/en-us/library/ms174335.aspx
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::insert()
 	 */
-	public function insert(array $options=array()) {
+	public function insert(array $options = []) {
 		$options += self::$insertDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -202,17 +196,17 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( is_array($options['what']) ) {
 			// Is an associative array
 			if( !isset($options['what'][0]) ) {
-				$options['what'] = array(0=>$options['what']);
+				$options['what'] = [0 => $options['what']];
 			}
 			// Indexed array to values string
 			// Quoted as escapeIdentifier()
-			$COLS = '("'.implode('", "', array_keys($options['what'][0])).'")';
-			foreach($options['what'] as $row) {
-				$WHAT .= (!empty($WHAT) ? ', ' : '').'('.implode(', ', $row).')';
+			$COLS = '("' . implode('", "', array_keys($options['what'][0])) . '")';
+			foreach( $options['what'] as $row ) {
+				$WHAT .= (!empty($WHAT) ? ', ' : '') . '(' . implode(', ', $row) . ')';
 			}
-			$WHAT = 'VALUES '.$WHAT;
+			$WHAT = 'VALUES ' . $WHAT;
 			
-		//Is a string
+			//Is a string
 		} else {
 			$WHAT = $options['what'];
 		}
@@ -226,26 +220,30 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	}
 	
 	/**
-	 * 
+	 *
 	 * {@inheritDoc}
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::delete()
-	 * @see http://msdn.microsoft.com/en-us/library/ms189835.aspx
 	 * @param array $options The options used to build the query
+	 * @see http://msdn.microsoft.com/en-us/library/ms189835.aspx
 	 */
-	public function delete(array $options=array()) {
+	public function delete(array $options = []) {
 		$options += self::$deleteDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
 		}
-		$WC = ( !empty($options['where']) ) ? 'WHERE '.$options['where'] : '';
+		$idField = !empty($options['idField']) ? $options['idField'] : $this->IDFIELD;
+		$WC = (!empty($options['where'])) ? 'WHERE ' . $options['where'] : '';
 		if( empty($options['orderby']) ) {
-			$options['orderby'] = $this->IDFIELD; 
+			$options['orderby'] = $this->IDFIELD;
 		}
-		$ORDERBY = 'ORDER BY '.$options['orderby'];
+		$ORDERBY = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
 		
 		if( $options['number'] > 0 ) {
 			// ORDER BY is required
-			$LIMIT_WC = ( $options['offset'] > 0 ) ? $options['offset'].' AND '.($options['offset']+$options['number']) : '<= '.$options['number'];
+			$LIMIT_WC = ($options['offset'] > 0) ? $options['offset'] . ' AND ' . ($options['offset'] + $options['number']) : '<= ' . $options['number'];
+			if( !$ORDERBY ) {
+				// Over is mandatory with row_number()
+				$ORDERBY = 'ORDER BY ' . $idField;
+			}
 			$QUERY = "WITH a AS ( SELECT *, row_number() OVER ({$ORDERBY}) AS rownum FROM {$options['table']} {$WC} )
 				DELETE FROM a WHERE a.rownum {$LIMIT_WC};";
 			
@@ -262,8 +260,8 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	/**
 	 *
 	 * {@inheritDoc}
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::lastID()
 	 * @param string $table The table to get the last inserted id
+	 * @see \Orpheus\SQLAdapter\SQLAdapter::lastID()
 	 */
 	public function lastID($table) {
 		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);
@@ -276,5 +274,14 @@ class SQLAdapterMSSQL extends SQLAdapter {
 			$config['user'], $config['passwd']
 		);
 		$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	}
+	
+	/**
+	 * Get the driven string
+	 *
+	 * @return string
+	 */
+	public static function getDriver() {
+		return 'dblib';
 	}
 }

@@ -67,8 +67,7 @@ abstract class SQLAdapter {
 	protected static $adapters = [
 		'mysql' => 'Orpheus\SQLAdapter\SQLAdapterMySQL',
 		'mssql' => 'Orpheus\SQLAdapter\SQLAdapterMSSQL',
-		'pgsql' => 'Orpheus\SQLAdapter\SQLAdapterPgSQL',
-	];//!< Number
+	];
 	
 	/**
 	 * Configurations
@@ -76,12 +75,14 @@ abstract class SQLAdapter {
 	 * @var array
 	 */
 	protected static $configs;
+	
 	/**
 	 * The ID field
 	 *
 	 * @var string
 	 */
 	protected $IDFIELD = 'id';
+	
 	/**
 	 * The PDO instance
 	 *
@@ -150,7 +151,7 @@ abstract class SQLAdapter {
 	 * @see pdo_query()
 	 */
 	public function query($Query, $Fetch = PDOQUERY) {
-		return pdo_query($Query, $Fetch, $this->pdo);
+		return pdo_query($Query, $Fetch, $this);
 	}
 	
 	/**
@@ -551,4 +552,17 @@ abstract class SQLAdapter {
 		return self::$instances[$instance]->formatValue($value);
 	}
 	
+	/**
+	 * @return PDO
+	 */
+	public function getPdo() {
+		return $this->pdo;
+	}
+	
+	/**
+	 * Get the driven string
+	 *
+	 * @return string
+	 */
+	public abstract static function getDriver();
 }

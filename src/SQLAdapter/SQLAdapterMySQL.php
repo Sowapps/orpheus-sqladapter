@@ -303,8 +303,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 * It requires a successful call of insert() !
 	 */
 	public function lastID($table) {
-		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);
-		return $r['LAST_ID'];
+		return $this->query('SELECT LAST_INSERT_ID();', PDOFETCHFIRSTCOL);
 	}
 	
 	/**
