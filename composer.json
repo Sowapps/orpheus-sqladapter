@@ -16,8 +16,8 @@
 	]
   },
   "require": {
-	"orpheus/orpheus-core": "dev-master",
-	"orpheus/orpheus-cache": "dev-master",
+	"orpheus/orpheus-core": "1.*",
+	"orpheus/orpheus-cache": "1.*",
 	"ext-pdo": "*"
   },
   "type": "library",
