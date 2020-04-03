@@ -114,7 +114,7 @@ abstract class SQLRequest {
 	 *
 	 * @param string $parameter
 	 * @param mixed $value
-	 * @return \Orpheus\SQLRequest\SQLRequest
+	 * @return $this
 	 */
 	protected function set($parameter, $value) {
 		$this->parameters[$parameter] = $value;

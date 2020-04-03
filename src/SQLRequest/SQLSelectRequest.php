@@ -116,7 +116,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the having condition
 	 *
 	 * @param string $condition
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return array|static
 	 */
 	public function having($condition = null) {
 		$having = $this->get('having', []);
@@ -130,17 +130,17 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	/**
 	 * Set the where clause
 	 *
-	 * @param array|string $condition
-	 * @param string $operator
-	 * @param string $value
-	 * @param bool $escapeValue
-	 * @return static
-	 *
 	 * If only $condition is provided, this is used as complete string, e.g where("id = 5")
 	 * If $equality & $value are provided, it uses it with $condition as a field (identifier), e.g where('id', '=', '5')
 	 * where identifier and value are escaped with escapeIdentifier() & escapeValue()
 	 * If $equality is provided but $value is not, $equality is the value and where are using a smart comparator, e.g where('id', '5')
 	 * All examples return the same results. Smart comparator is IN for array values and = for all other.
+	 *
+	 * @param array|string $condition
+	 * @param string $operator
+	 * @param string $value
+	 * @param bool $escapeValue
+	 * @return static
 	 */
 	public function where($condition, $operator = null, $value = null, $escapeValue = true) {
 		$where = $this->get('where', []);
