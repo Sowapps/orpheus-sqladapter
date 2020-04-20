@@ -98,7 +98,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( !$options['number'] && $options['output'] == static::ARR_FIRST ) {
 			$options['number'] = 1;
 		}
-		$isFromTable = $options['table'][0] != '(';
+		$isFromTable = $options['table'][0] !== '(';
 		$TABLE = $isFromTable ? static::escapeIdentifier($options['table']) : $options['table'];
 		// Auto-satisfy join queries
 		if( empty($options['what']) ) {

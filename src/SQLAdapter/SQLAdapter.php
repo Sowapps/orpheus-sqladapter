@@ -354,9 +354,9 @@ abstract class SQLAdapter {
 		}
 		$cache = new APCache('sqladapter', 'db_configs', 2 * 3600);
 		if( !$cache->get($configs) ) {
-			$fileCconfig = IniConfig::build(DBCONF, true, false)->all;
+			$fileConfig = IniConfig::build(DBCONF, true, false)->all;
 			$configs = [];
-			foreach( $fileCconfig as $key => $value ) {
+			foreach( $fileConfig as $key => $value ) {
 				if( is_array($value) ) {
 					// Instance config
 					$configs[$key] = $value;
