@@ -99,8 +99,7 @@ abstract class SQLAdapter {
 	public function __construct($name, $config) {
 		
 		if( is_object($name) ) {
-			
-			// Deprecated, retrocompatibility
+			// Deprecated, BC only
 			// TODO Remove this case
 			$this->pdo = $name;
 			
@@ -238,6 +237,9 @@ abstract class SQLAdapter {
 	 * If null, we use the NULL value, else we consider it as a string value.
 	 */
 	public function escapeValue($value) {
+		if( is_bool($value) ) {
+			return $value ? 1 : 0;
+		}
 		return $value === null ? 'NULL' : $this->formatString($value);
 	}
 	
@@ -266,6 +268,13 @@ abstract class SQLAdapter {
 			$this->IDFIELD = $field;
 		}
 		return $this;
+	}
+	
+	/**
+	 * @return PDO
+	 */
+	public function getPdo() {
+		return $this->pdo;
 	}
 	
 	/**
@@ -550,13 +559,6 @@ abstract class SQLAdapter {
 	public static function doFormatValue($value, $instance = null) {
 		self::prepareInstance($instance);
 		return self::$instances[$instance]->formatValue($value);
-	}
-	
-	/**
-	 * @return PDO
-	 */
-	public function getPdo() {
-		return $this->pdo;
 	}
 	
 	/**

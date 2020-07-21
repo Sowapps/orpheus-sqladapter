@@ -18,7 +18,7 @@ abstract class SQLRequest {
 	/**
 	 * The SQL Adapter
 	 *
-	 * @var \Orpheus\SQLAdapter\SQLAdapter
+	 * @var SQLAdapter
 	 */
 	protected $sqlAdapter;
 	
@@ -152,7 +152,7 @@ abstract class SQLRequest {
 	/**
 	 * Set the SQL Adapter
 	 *
-	 * @param \Orpheus\SQLAdapter\SQLAdapter $sqlAdapter
+	 * @param SQLAdapter $sqlAdapter
 	 */
 	public function setSQLAdapter(SQLAdapter $sqlAdapter) {
 		$this->sqlAdapter = $sqlAdapter;
@@ -171,7 +171,7 @@ abstract class SQLRequest {
 	 * Set/Get the table parameter
 	 *
 	 * @param string $table
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return $this|mixed
 	 */
 	public function from($table = null) {
 		return $this->sget('table', $table);
@@ -182,7 +182,7 @@ abstract class SQLRequest {
 	 *
 	 * @param string $parameter
 	 * @param mixed $value
-	 * @return mixed
+	 * @return $this|mixed
 	 *
 	 * If there is a value (non-null), we set it or we get it
 	 */
@@ -191,10 +191,10 @@ abstract class SQLRequest {
 	}
 	
 	/**
-	 * Set/Get the ouput parameter
+	 * Set/Get the output parameter
 	 *
 	 * @param string $output
-	 * @return mixed|\Orpheus\SQLRequest\SQLRequest
+	 * @return $this|mixed
 	 */
 	public function output($output = null) {
 		return $this->sget('output', $output);
@@ -223,9 +223,9 @@ abstract class SQLRequest {
 	/**
 	 * Create a select request
 	 *
-	 * @param \Orpheus\SQLAdapter\SQLAdapter $sqlAdapter
+	 * @param SQLAdapter $sqlAdapter
 	 * @param string $idField The ID field
-	 * @param string $class The class used to instanciate entries
+	 * @param string $class The class used to instantiate entries
 	 * @return SQLSelectRequest
 	 */
 	public static function select($sqlAdapter = null, $idField = 'id', $class = null) {
