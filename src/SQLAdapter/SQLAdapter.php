@@ -240,6 +240,9 @@ abstract class SQLAdapter {
 		if( is_bool($value) ) {
 			return $value ? 1 : 0;
 		}
+		if( is_object($value) && method_exists($value, 'id') ) {
+			return $value->id();
+		}
 		return $value === null ? 'NULL' : $this->formatString($value);
 	}
 	
