@@ -5,6 +5,7 @@
 
 namespace Orpheus\SQLRequest;
 
+use DateTime;
 use Exception;
 use Iterator;
 use Orpheus\SQLAdapter\SQLAdapter;
@@ -184,8 +185,14 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 			if( is_array($value) ) {
 				$value = '(' . $this->sqlAdapter->formatValueList($value) . ')';
 			} else {
-				// ID Could be a string, so we have to escape it too
-				if( is_object($value) ) {
+				
+				if( $value instanceof DateTime ) {
+					// Value is PHP DateTime
+					$value = sqlDatetime($value);
+					
+				} elseif( is_object($value) ) {
+					// Value is PermanentObject
+					// Id Could be a string, so we have to escape it too
 					$value = id($value);
 				}
 				if( $escapeValue ) {
