@@ -5,6 +5,7 @@
 
 namespace Orpheus\SQLAdapter;
 
+use Exception;
 use PDO;
 
 /**
@@ -131,6 +132,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 				$r = (object) $r;//stdClass
 			}
 		}
+		
 		return (!empty($results) && $options['output'] === static::ARR_FIRST) ? $results[0] : $results;
 	}
 	
@@ -170,6 +172,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( $options['output'] == static::SQLQUERY ) {
 			return $QUERY;
 		}
+		
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
@@ -216,6 +219,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( $options['output'] == static::SQLQUERY ) {
 			return $QUERY;
 		}
+		
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
@@ -254,6 +258,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( $options['output'] == static::SQLQUERY ) {
 			return $QUERY;
 		}
+		
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
@@ -265,6 +270,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 */
 	public function lastID($table) {
 		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);
+		
 		return $r['LAST_ID'];
 	}
 	

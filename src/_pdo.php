@@ -80,11 +80,12 @@ function pdo_loadConfig() {
  * @param string $instance
  * @return array
  */
-function pdo_getSettings($instance) {
+function pdo_getSettings($instance = null) {
 	global $DBS;
+	$instance = $instance ?: pdo_getDefaultInstance();
 	// Load instance settings
 	$instanceSettings = $DBS[$instance];
-	if( $instanceSettings['driver'] != 'sqlite' ) {
+	if( $instanceSettings['driver'] !== 'sqlite' ) {
 		if( empty($instanceSettings['host']) ) {
 			$instanceSettings['host'] = '127.0.0.1';
 		}
@@ -95,7 +96,23 @@ function pdo_getSettings($instance) {
 			$instanceSettings['passwd'] = '';
 		}
 	}
+	
 	return $instanceSettings;
+}
+
+function pdo_checkInstanceName(&$instance) {
+	pdo_loadConfig();
+	
+	// Using default instance
+	if( empty($instance) ) {
+		// Get from default
+		$instance = pdo_getDefaultInstance();
+		
+	} elseif( empty($DBS[$instance]) ) {
+		pdo_error('Parameter Instance " ' . $instance . ' " is unknown.', 'Instance Setting Definition');
+	}
+	
+	return $instance;
 }
 
 /**
@@ -112,16 +129,7 @@ function pdo_getSettings($instance) {
 function ensure_pdoinstance($instance = null) {
 	global $pdoInstances, $DBS;
 	
-	pdo_loadConfig();
-	
-	// Using default instance
-	if( empty($instance) ) {
-		// Get from default
-		$instance = pdo_getDefaultInstance();
-		
-	} elseif( empty($DBS[$instance]) ) {
-		pdo_error('Parameter Instance " ' . $instance . ' " is unknown.', 'Instance Setting Definition');
-	}
+	pdo_checkInstanceName($instance);
 	
 	if( !empty($pdoInstances[$instance]) ) {
 		// Instance is already checked and loaded
@@ -131,56 +139,72 @@ function ensure_pdoinstance($instance = null) {
 	$instanceSettings = pdo_getSettings($instance);
 	
 	try {
-		//If There is no driver given, it is an error.
-		if( empty($instanceSettings['driver']) ) {
-			pdo_error('Database setting "driver" should have the driver name (not empty)', 'Driver Definition');
-			
-			//If driver is mysql
-		} elseif( $instanceSettings['driver'] === 'mysql' ) {
-			//If Instance does not exist yet, it is not connected, we create it & link it.
-			if( empty($instanceSettings['dbname']) ) {
-				pdo_error('Database setting "dbname" should have the database\'s name (not empty)', 'DB Name Definition');
-			}
-			$pdoInstances[$instance] = new PDO(
-				"mysql:dbname={$instanceSettings['dbname']};host={$instanceSettings['host']}" . (!empty($instanceSettings['port']) ? ';port=' . $instanceSettings['port'] : ''),
-				$instanceSettings['user'], $instanceSettings['passwd'],
-				[PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8", PDO::MYSQL_ATTR_DIRECT_QUERY => true]
-			);
-			$pdoInstances[$instance]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			
-			//If driver is mssql
-		} elseif( $instanceSettings['driver'] === 'mssql' ) {
-			//If Instance does not exist yet, it is not connected, we create it & link it.
-			if( empty($instanceSettings['dbname']) ) {
-				pdo_error('Database setting "dbname" should have the database\'s name (not empty)', 'DB Name Definition');
-			}
-			$pdoInstances[$instance] = new PDO(
-				"dblib:dbname={$instanceSettings['dbname']};host={$instanceSettings['host']}" . (!empty($instanceSettings['port']) ? ':' . $instanceSettings['port'] : ''),
-				$instanceSettings['user'], $instanceSettings['passwd']
-			);
-			$pdoInstances[$instance]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			
-		} elseif( $instanceSettings['driver'] === 'pgsql' ) {
-			//If Instance does not exist yet, it is not connected, we create it & link it.
-			if( empty($instanceSettings['dbname']) ) {
-				pdo_error('Database setting "dbname" should have the database\'s name (not empty)', 'DB Name Definition');
-			}
-			$pdoInstances[$instance] = new PDO(
-				"pgsql:dbname={$instanceSettings['dbname']};host={$instanceSettings['host']}" . (!empty($instanceSettings['port']) ? ';port=' . $instanceSettings['port'] : '') . "user={$instanceSettings['user']};password={$instanceSettings['passwd']}"
-			);
-			$pdoInstances[$instance]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			
-		} elseif( $instanceSettings['driver'] === 'sqlite' ) {
-			//If Instance does not exist yet, it is not connected, we create it & link it.
-			$instanceSettings['path'] = (empty($instanceSettings['path'])) ? ':memory:' : $instanceSettings['path'];
-			$pdoInstances[$instance] = new PDO(
-				"sqlite:{$instanceSettings['path']}"
-			);
-			$pdoInstances[$instance]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		}
+		$pdoInstances[$instance] = pdo_connect($instanceSettings);
 	} catch( PDOException $e ) {
 		pdo_error('PDO Exception: ' . $e->getMessage(), 'DB Connection', 0, $e);
 	}
+	
+	return $instance;
+}
+
+function pdo_connect($settings, $selectDatabase = true) {
+	//If There is no driver given, it is an error.
+	if( empty($settings['driver']) ) {
+		pdo_error('Database setting "driver" should have the driver name (not empty)', 'Driver Definition');
+		
+		//If driver is mysql
+	} elseif( $settings['driver'] === 'mysql' ) {
+		//If Instance does not exist yet, it is not connected, we create it & link it.
+		if( $selectDatabase && empty($settings['dbname']) ) {
+			pdo_error('Database setting "dbname" should have the database\'s name (not empty)', 'DB Name Definition');
+		}
+		$instance = new PDO(
+			"mysql:host={$settings['host']}"
+			. ($selectDatabase ? ';dbname=' . $settings['dbname'] : '')
+			. (!empty($settings['port']) ? ';port=' . $settings['port'] : ''),
+			$settings['user'], $settings['passwd'],
+			[PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8", PDO::MYSQL_ATTR_DIRECT_QUERY => true]
+		);
+		$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		
+		//If driver is mssql
+	} elseif( $settings['driver'] === 'mssql' ) {
+		//If Instance does not exist yet, it is not connected, we create it & link it.
+		if( $selectDatabase && empty($settings['dbname']) ) {
+			pdo_error('Database setting "dbname" should have the database\'s name (not empty)', 'DB Name Definition');
+		}
+		$instance = new PDO(
+			"dblib:host={$settings['host']}"
+			. ($selectDatabase ? ';dbname=' . $settings['dbname'] : '')
+			. (!empty($settings['port']) ? ':' . $settings['port'] : ''),
+			$settings['user'], $settings['passwd']
+		);
+		$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		
+	} elseif( $settings['driver'] === 'pgsql' ) {
+		//If Instance does not exist yet, it is not connected, we create it & link it.
+		if( $selectDatabase && empty($settings['dbname']) ) {
+			pdo_error('Database setting "dbname" should have the database\'s name (not empty)', 'DB Name Definition');
+		}
+		$instance = new PDO(
+			"pgsql:host={$settings['host']}"
+			. ($selectDatabase ? ';dbname=' . $settings['dbname'] : '')
+			. (!empty($settings['port']) ? ';port=' . $settings['port'] : '')
+			. ";user={$settings['user']};password={$settings['passwd']}"
+		);
+		$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		
+	} elseif( $settings['driver'] === 'sqlite' ) {
+		//If Instance does not exist yet, it is not connected, we create it & link it.
+		$settings['path'] = empty($settings['path']) ? ':memory:' : $settings['path'];
+		$instance = new PDO(
+			"sqlite:{$settings['path']}"
+		);
+		$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	} else {
+		pdo_error('Database setting "driver" does not match any known driver', 'Driver Definition');
+	}
+	
 	return $instance;
 }
 
