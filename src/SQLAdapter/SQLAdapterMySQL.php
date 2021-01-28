@@ -165,7 +165,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 				$join = sprintf(
 					'%s JOIN %s %s ON %s',
 					$join->mandatory ? 'INNER' : 'LEFT',
-					$join->table,
+					$this->escapeIdentifier($join->table),
 					$join->alias,
 					$join->condition
 				);
