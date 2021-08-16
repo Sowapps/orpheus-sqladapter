@@ -8,13 +8,14 @@ namespace Orpheus\SQLRequest;
 use DateTime;
 use Exception;
 use Iterator;
-use Orpheus\SQLAdapter\SQLAdapter;
+use Orpheus\Publisher\PermanentObject\PermanentObject;
+use Orpheus\SQLAdapter\SqlAdapter;
 use PDOStatement;
 
 /**
  * The main SQL Select Request class
  *
- * This class handles sql SELECT request to the DMBS server.
+ * This class handles sql SELECT request to the DBMS server.
  */
 class SQLSelectRequest extends SQLRequest implements Iterator {
 	
@@ -23,28 +24,28 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @var boolean
 	 */
-	protected $usingCache = true;
+	protected bool $usingCache = true;
 	
 	/**
 	 * The current fetch statement
 	 *
 	 * @var PDOStatement
 	 */
-	protected $fetchLastStatement;
+	protected PDOStatement $fetchLastStatement;
 	
 	/**
 	 * The current fetch is expecting an object
 	 *
 	 * @var boolean
 	 */
-	protected $fetchIsObject;
+	protected bool $fetchIsObject = false;
 	
 	/**
 	 * The current index
 	 *
 	 * @var int
 	 */
-	protected $currentIndex;
+	protected int $currentIndex;
 	
 	/**
 	 * The current row
@@ -58,15 +59,16 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @var callable[]
 	 */
-	protected $filters = [];
+	protected array $filters = [];
 	
 	/**
 	 * Filter results using callable, the callable must return a boolean
 	 *
 	 * @return $this
 	 */
-	public function filter(callable $filter) {
+	public function filter(callable $filter): SQLSelectRequest {
 		$this->filters[] = $filter;
+		
 		return $this;
 	}
 	
@@ -76,7 +78,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @return $this
 	 * @see setUsingCache()
 	 */
-	public function disableCache() {
+	public function disableCache(): SQLSelectRequest {
 		return $this->setUsingCache(false);
 	}
 	
@@ -84,10 +86,11 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set the class objects is using cache when getting results
 	 *
 	 * @param boolean $usingCache
-	 * @return \Orpheus\SQLRequest\SQLSelectRequest
+	 * @return $this
 	 */
-	public function setUsingCache($usingCache) {
+	public function setUsingCache(bool $usingCache): SQLSelectRequest {
 		$this->usingCache = $usingCache;
+		
 		return $this;
 	}
 	
@@ -102,21 +105,21 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	}
 	
 	/**
-	 * Add a field to to the field list
+	 * Add a field to the field list
 	 *
 	 * @param string $field
 	 * @return $this
 	 *
 	 * The current field list must be a string
 	 */
-	public function addField($field) {
+	public function addField(string $field) {
 		return $this->sget('what', $this->get('what', '*') . ',' . $field);
 	}
 	
 	/**
 	 * Set/Get the having condition
 	 *
-	 * @param string $condition
+	 * @param string|array|null $condition
 	 * @return array|static
 	 */
 	public function having($condition = null) {
@@ -125,6 +128,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 			return $having;
 		}
 		$having[] = $condition;
+		
 		return $this->set('having', $having);
 	}
 	
@@ -137,7 +141,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * If $equality is provided but $value is not, $equality is the value and where are using a smart comparator, e.g where('id', '5')
 	 * All examples return the same results. Smart comparator is IN for array values and = for all other.
 	 *
-	 * @param array|string $condition
+	 * @param string|array $condition
 	 * @param string $operator
 	 * @param string $value
 	 * @param bool $escapeValue
@@ -146,17 +150,18 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	public function where($condition, $operator = null, $value = null, $escapeValue = true) {
 		$where = $this->get('where', []);
 		$where[] = $this->formatCondition($condition, $operator, $value, $escapeValue);
+		
 		return $this->sget('where', $where);
 	}
 	
 	/**
-	 * @param string $condition The condition or the field
+	 * @param string|array $condition The condition or the field
 	 * @param string|mixed|null $operator Value or operator
 	 * @param mixed|null $value The value to use
 	 * @param bool $escapeValue Should the value be escaped ?
 	 * @return string
 	 */
-	public function formatCondition($condition, $operator, $value, $escapeValue = true) {
+	public function formatCondition($condition, $operator, $value, bool $escapeValue = true) {
 		if( is_array($condition) ) {
 			if( $condition && is_array($condition[0]) ) {
 				// Array of array => Multiple conditions, we use the OR operator
@@ -167,6 +172,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 						$this->formatCondition($conditionRow, null, null);
 					// Fall into the One condition
 				}
+				
 				return '(' . $conditionStr . ')';
 			} else {
 				// One condition
@@ -201,6 +207,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 			}
 			$condition = $this->escapeIdentifier($condition) . ' ' . $operator . ' ' . $value;
 		}
+		
 		return $condition;
 	}
 	
@@ -208,9 +215,9 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the order by filter
 	 *
 	 * @param string $fields
-	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
+	 * @return mixed|SQLSelectRequest
 	 */
-	public function orderby($fields = null) {
+	public function orderBy($fields = null) {
 		return $this->sget('orderby', $fields);
 	}
 	
@@ -218,9 +225,9 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the group by filter
 	 *
 	 * @param string $field
-	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
+	 * @return mixed|SQLSelectRequest
 	 */
-	public function groupby($field = null) {
+	public function groupBy(?string $field = null) {
 		return $this->sget('groupby', $field);
 	}
 	
@@ -228,9 +235,9 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the number of expected result (as limit)
 	 *
 	 * @param int $number
-	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
+	 * @return mixed|SQLSelectRequest
 	 */
-	public function number($number = null) {
+	public function number(?int $number = null) {
 		return $this->maxRows($number);
 	}
 	
@@ -238,9 +245,9 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the number of expected result (as limit)
 	 *
 	 * @param int $number
-	 * @return mixed|\Orpheus\SQLRequest\SQLSelectRequest
+	 * @return mixed|SQLSelectRequest
 	 */
-	public function maxRows($number = null) {
+	public function maxRows(?int $number = null) {
 		return $this->sget('number', $number);
 	}
 	
@@ -250,14 +257,14 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param int $offset
 	 * @return mixed|$this
 	 */
-	public function fromOffset($offset = null) {
+	public function fromOffset(?int $offset = null) {
 		return $this->sget('offset', $offset);
 	}
 	
 	/**
 	 * Add a join condition to this query
 	 *
-	 * @param string $join
+	 * @param string|PermanentObject $join
 	 * @return $this
 	 * @throws Exception
 	 */
@@ -292,13 +299,16 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 				'mandatory' => $mandatory,
 			];
 		}
+		
 		return $this->sget('join', $joins);
 	}
 	
 	/**
 	 * Get the name to use in SQL Query
+	 *
+	 * @return string
 	 */
-	public function getEntityName() {
+	public function getEntityName(): string {
 		return $this->get('alias') ?: $this->get('table');
 	}
 	
@@ -306,7 +316,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param string $alias
 	 * @return mixed|$this
 	 */
-	public function alias($alias) {
+	public function alias(string $alias) {
 		return $this->sget('alias', $alias);
 	}
 	
@@ -315,7 +325,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param boolean $defaultOnly
 	 * @return string
 	 */
-	public function setAlias($alias, $defaultOnly = false) {
+	public function setAlias(string $alias, $defaultOnly = false): string {
 		if( $defaultOnly ) {
 			// Set only if undefined
 			$value = $this->get('alias');
@@ -325,9 +335,10 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 				$alias = $value;
 			}
 		} else {
-			// Force to set alias
+			// Force setting alias
 			$this->set('alias', $alias);
 		}
+		
 		return $alias;
 	}
 	
@@ -335,7 +346,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param bool|null $isDistinct
 	 * @return mixed|$this
 	 */
-	public function distinct($isDistinct = null) {
+	public function distinct(?bool $isDistinct = null) {
 		return $this->sget('distinct', $isDistinct);
 	}
 	
@@ -344,8 +355,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function asObject() {
-		return $this->output(SQLAdapter::OBJECT);
+	public function asObject(): SQLSelectRequest {
+		return $this->output(SqlAdapter::OBJECT);
 	}
 	
 	/**
@@ -353,8 +364,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function asObjectList() {
-		return $this->output(SQLAdapter::ARR_OBJECTS);
+	public function asObjectList(): SQLSelectRequest {
+		return $this->output(SqlAdapter::ARR_OBJECTS);
 	}
 	
 	/**
@@ -362,8 +373,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function asArrayList() {
-		return $this->output(SQLAdapter::ARR_ASSOC);
+	public function asArrayList(): SQLSelectRequest {
+		return $this->output(SqlAdapter::ARR_ASSOC);
 	}
 	
 	/**
@@ -372,7 +383,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public function exists() {
+	public function exists(): bool {
 		return !!$this->count(1);
 	}
 	
@@ -383,7 +394,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @return int
 	 * @throws Exception
 	 */
-	public function count($max = '') {
+	public function count($max = ''): int {
 		$countKey = '0rpHeus_Count';
 		$query = $this->getClone(false);
 		
@@ -392,7 +403,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 			->asArray()
 			->run();
 		
-		return isset($result[$countKey]) ? $result[$countKey] : 0;
+		return $result[$countKey] ?? 0;
 	}
 	
 	/**
@@ -400,8 +411,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function asArray() {
-		return $this->output(SQLAdapter::ARR_FIRST);
+	public function asArray(): SQLSelectRequest {
+		return $this->output(SqlAdapter::ARR_FIRST);
 	}
 	
 	/**
@@ -424,8 +435,8 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * {@inheritDoc}
 	 * @see Iterator::valid()
 	 */
-	public function valid() {
-		return $this->fetchLastStatement != null && $this->currentRow != null;
+	public function valid(): bool {
+		return $this->fetchLastStatement !== null && $this->currentRow !== null;
 	}
 	
 	/**
@@ -454,7 +465,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	/**
 	 * Fetch the next result of this query
 	 *
-	 * @return NULL|mixed
+	 * @return PermanentObject|mixed|null
 	 *
 	 * Query one time the DBMS and fetch result for next calls
 	 * This feature is made for common used else it may have an unexpected behavior
@@ -471,30 +482,25 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 		if( !$this->fetchIsObject ) {
 			return $row;
 		}
+		/** @var PermanentObject $class */
 		$class = $this->class;
+		
 		return $class::load($row, true, $this->usingCache);
 	}
 	
-	protected function startFetching() {
-		$this->fetchIsObject = $this->get('output', SQLAdapter::ARR_OBJECTS) === SQLAdapter::ARR_OBJECTS;
-		$this->set('output', SQLAdapter::STATEMENT);
-		$this->fetchLastStatement = $this->run();
-	}
-	
 	/**
-	 *
 	 * {@inheritDoc}
 	 * @see \Orpheus\SQLRequest\SQLRequest::run()
 	 */
 	public function run() {
 		$options = $this->parameters;
 		$onlyOne = $objects = 0;
-		if( in_array($options['output'], [SQLAdapter::ARR_OBJECTS, SQLAdapter::OBJECT]) ) {
-			if( $options['output'] == SQLAdapter::OBJECT ) {
+		if( in_array($options['output'], [SqlAdapter::ARR_OBJECTS, SqlAdapter::OBJECT]) ) {
+			if( $options['output'] == SqlAdapter::OBJECT ) {
 				$options['number'] = 1;
 				$onlyOne = 1;
 			}
-			$options['output'] = SQLAdapter::ARR_ASSOC;
+			$options['output'] = SqlAdapter::ARR_ASSOC;
 			$objects = 1;
 		}
 		$options['idField'] = $this->getIDField();
@@ -502,9 +508,10 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 		if( is_object($r) ) {
 			return $r;
 		}
-		if( !$r && in_array($options['output'], [SQLAdapter::ARR_ASSOC, SQLAdapter::ARR_OBJECTS, SQLAdapter::ARR_FIRST]) ) {
+		if( !$r && in_array($options['output'], [SqlAdapter::ARR_ASSOC, SqlAdapter::ARR_OBJECTS, SqlAdapter::ARR_FIRST]) ) {
 			return $onlyOne && $objects ? null : [];
 		}
+		/** @var PermanentObject $class */
 		$class = $this->class;
 		if( $r && $objects ) {
 			if( $onlyOne ) {
@@ -523,6 +530,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 				$r = $results;
 			}
 		}
+		
 		return $r;
 	}
 	
@@ -530,13 +538,20 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param $row
 	 * @return bool
 	 */
-	public function isRowPassingFilters($row) {
+	public function isRowPassingFilters($row): bool {
 		foreach( $this->filters as $filter ) {
 			if( !call_user_func($filter, $row) ) {
 				return false;
 			}
 		}
+		
 		return true;
+	}
+	
+	protected function startFetching() {
+		$this->fetchIsObject = $this->get('output', SqlAdapter::ARR_OBJECTS) === SqlAdapter::ARR_OBJECTS;
+		$this->set('output', SqlAdapter::STATEMENT);
+		$this->fetchLastStatement = $this->run();
 	}
 	
 }

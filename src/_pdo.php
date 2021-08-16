@@ -17,7 +17,7 @@
 
 use Orpheus\Config\IniConfig;
 use Orpheus\SQLAdapter\Exception\SQLException;
-use Orpheus\SQLAdapter\SQLAdapter;
+use Orpheus\SQLAdapter\SqlAdapter;
 
 
 defifn('DBCONF', 'database');
@@ -80,7 +80,7 @@ function pdo_loadConfig() {
  * @param string $instance
  * @return array
  */
-function pdo_getSettings($instance = null) {
+function pdo_getSettings($instance = null): array {
 	global $DBS;
 	$instance = $instance ?: pdo_getDefaultInstance();
 	// Load instance settings
@@ -103,6 +103,7 @@ function pdo_getSettings($instance = null) {
 function pdo_checkInstanceName(&$instance) {
 	pdo_loadConfig();
 	
+	$instance = null;
 	// Using default instance
 	if( empty($instance) ) {
 		// Get from default
@@ -127,7 +128,7 @@ function pdo_checkInstanceName(&$instance) {
  * If the instance is not connected, this function attempts to connect.
  */
 function ensure_pdoinstance($instance = null) {
-	global $pdoInstances, $DBS;
+	global $pdoInstances;
 	
 	pdo_checkInstanceName($instance);
 	
@@ -147,8 +148,11 @@ function ensure_pdoinstance($instance = null) {
 	return $instance;
 }
 
-function pdo_connect($settings, $selectDatabase = true) {
-	//If There is no driver given, it is an error.
+/**
+ * @throws SQLException
+ */
+function pdo_connect($settings, $selectDatabase = true): ?PDO {
+	// If There is no driver given, it is an error.
 	if( empty($settings['driver']) ) {
 		pdo_error('Database setting "driver" should have the driver name (not empty)', 'Driver Definition');
 		
@@ -205,41 +209,29 @@ function pdo_connect($settings, $selectDatabase = true) {
 		pdo_error('Database setting "driver" does not match any known driver', 'Driver Definition');
 	}
 	
-	return $instance;
-}
-
-/**
- * Get PDO instance by name
- *
- * @param string $instance
- * @return PDO
- */
-function pdo_instance($instance) {
-	global $pdoInstances;
-	$instance = ensure_pdoinstance($instance);
-	return $pdoInstances[$instance];
+	return $instance ?? null;
 }
 
 /**
  * Execute $query
  *
+ * Execute $query on the instantiated database.
+ *
  * @param string $query The query to execute.
  * @param int $fetch See PDO constants above. Optional, default is PDOQUERY.
  * @param string $instance The instance to use to execute the query. Optional, default is defined by ensure_pdoinstance().
  * @return mixed The result of the query, of type defined by $fetch.
- *
- * Execute $query on the instanciated database.
  */
 function pdo_query($query, $fetch = PDOQUERY, $instance = null) {
 	global $pdoInstances, $DBS;
 	// Checks connection
-	if( $instance instanceof SQLAdapter ) {
+	if( $instance instanceof SqlAdapter ) {
 		$pdoInstance = $instance->getPdo();
 		$driver = $instance->getDriver();
 	} else {
 		$instance = ensure_pdoinstance($instance);
 		if( empty($pdoInstances[$instance]) ) {
-			return;
+			return null;
 		}
 		$instanceSettings = $DBS[$instance];
 		$pdoInstance = $pdoInstances[$instance];
@@ -256,6 +248,7 @@ function pdo_query($query, $fetch = PDOQUERY, $instance = null) {
 			}
 			$ERR_ACTION = 'QUERY';
 			$PDOSQuery = $pdoInstance->query($query);
+			$returnValue = null;
 			if( bintest($fetch, PDOSTMT) ) {
 				return $PDOSQuery;
 				
@@ -278,43 +271,32 @@ function pdo_query($query, $fetch = PDOQUERY, $instance = null) {
 			}
 			$PDOSQuery->closeCursor();
 			unset($PDOSQuery);
+			
 			return $returnValue;
 		} catch( PDOException $e ) {
 			pdo_error($ERR_ACTION . ' ERROR: ' . $e->getMessage(), 'Query: ' . $query, $fetch, $e);
+			
 			return false;
 		}
 	}
-	//Unknown Driver
-	pdo_error('Driver "' . $instanceSettings['driver'] . '" does not exist or is not implemented yet.', 'Driver Definition');
-}
-
-/**
- * Get the last inserted ID
- *
- * @param string $instance The instance to use to get the last inserted id. Optional, default is defined by ensure_pdoinstance().
- * @return string The last inserted id
- *
- * Get the last inserted ID for this instance
- */
-function pdo_lastInsertId($instance = null) {
-	global $pdoInstances;
-	$instance = ensure_pdoinstance($instance);
-	$pdoInstance = $pdoInstances[$instance];
-	$r = $pdoInstance->lastInsertId();
-	return $r;
+	// Unknown Driver
+	pdo_error(sprintf('Driver "%s" does not exist or is not implemented yet.', $driver), 'Driver Definition');
+	
+	return null;
 }
 
 /**
  * Log a PDO error
  *
+ * Save the error report $report in the log file and throw an exception.
+ * If the error is minor, nothing happen, else
+ * The error is reported and an exception is thrown
+ *
  * @param string $report The report to save.
  * @param string $action Optional information about what the script was doing.
  * @param int $fetch The fetch flags, if PDOERROR_MINOR, this function does nothing. Optional, default value is 0.
  * @param PDOException $original The original exception. Optional, default value is null.
- *
- * Save the error report $report in the log file and throw an exception.
- * If the error is minor, nothing happen, else
- * The error is reported and an exception is thrown
+ * @throws SQLException
  */
 function pdo_error($report, $action = '', $fetch = 0, $original = null) {
 	if( bintest($fetch, PDOERROR_MINOR) ) {
@@ -322,17 +304,4 @@ function pdo_error($report, $action = '', $fetch = 0, $original = null) {
 	}
 	sql_error($report, $action, true);
 	throw new SQLException($report, $action, $original);
-}
-
-/**
- * Quote and Escape $string
- *
- * @param string $string The value to escape
- * @return string The quoted and escaped value
- */
-function pdo_quote($string) {
-	//Old version, does not protect against SQL Injection.
-	global $pdoInstances;
-	$instance = ensure_pdoinstance();
-	return $pdoInstances[$instance]->quote($string);
 }

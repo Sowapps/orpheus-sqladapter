@@ -13,7 +13,7 @@ use PDO;
  *
  * This class is the sql adapter for MySQL.
  */
-class SQLAdapterMySQL extends SQLAdapter {
+class SQLAdapterMySql extends SqlAdapter {
 	
 	/**
 	 * Select defaults options
@@ -28,7 +28,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		'groupby'  => '',// Ex: Field
 		'number'   => -1,// -1 => All
 		'offset'   => 0,// 0 => The start
-		'output'   => SQLAdapter::ARR_ASSOC,// Associative Array
+		'output'   => SqlAdapter::ARR_ASSOC,// Associative Array
 		'alias'    => null,// No alias
 		'distinct' => null,// No remove of duplicates
 	];
@@ -45,7 +45,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		'orderby'     => '',//Ex: Field1 ASC, Field2 DESC
 		'number'      => -1,//-1 => All
 		'offset'      => 0,//0 => The start
-		'output'      => SQLAdapter::NUMBER,//Number of updated lines
+		'output'      => SqlAdapter::NUMBER,//Number of updated lines
 	];
 	
 	/**
@@ -61,7 +61,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		'orderby'     => '',//Ex: Field1 ASC, Field2 DESC
 		'number'      => -1,//-1 => All
 		'offset'      => 0,//0 => The start
-		'output'      => SQLAdapter::NUMBER,//Number of deleted lines
+		'output'      => SqlAdapter::NUMBER,//Number of deleted lines
 	];
 	
 	/**
@@ -74,7 +74,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		'delayed'     => false,//false => Not delayed
 		'ignore'      => false,//false => Not ignore errors
 		'into'        => true,//true => INSERT INTO
-		'output'      => SQLAdapter::NUMBER,//Number of inserted lines
+		'output'      => SqlAdapter::NUMBER,//Number of inserted lines
 	];
 	
 	/**
@@ -97,7 +97,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 			$options['number'] = 1;
 		}
 		$isFromTable = $options['table'][0] != '(';
-		$TABLE = $isFromTable ? static::escapeIdentifier($options['table']) : $options['table'];
+		$TABLE = $isFromTable ? $this->escapeIdentifier($options['table']) : $options['table'];
 		// Auto-satisfy join queries
 		if( empty($options['what']) ) {
 			$options['what'] = $isFromTable ? (!empty($options['alias']) ? $options['alias'] : $TABLE) . '.*' : '*';
@@ -116,7 +116,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		$JOIN = $this->parseJoin($options);
 		
 		$QUERY = "SELECT {$DISTINCT} {$WHAT} FROM {$TABLE} {$ALIAS} {$JOIN} {$WC} {$GROUPBY} {$HAVING} {$ORDERBY} {$LIMIT}";
-		if( $output === static::SQLQUERY ) {
+		if( $output === static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		$results = $this->query($QUERY, ($output === static::STATEMENT) ? PDOSTMT : PDOFETCHALL);
@@ -132,10 +132,10 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 *
 	 * {@inheritDoc}
 	 * @param string $identifier The identifier to escape
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::escapeIdentifier()
+	 * @see \Orpheus\SQLAdapter\SqlAdapter::escapeIdentifier()
 	 *
 	 */
-	public function escapeIdentifier($identifier) {
+	public function escapeIdentifier($identifier): string {
 		return '`' . str_replace('.', '`.`', $identifier) . '`';
 	}
 	
@@ -205,7 +205,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		$TABLE = static::escapeIdentifier($options['table']);
 		
 		$QUERY = "UPDATE {$OPTIONS} {$TABLE} SET {$WHAT} {$WC} {$ORDER_BY} {$LIMIT}";
-		if( $options['output'] == static::SQLQUERY ) {
+		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		return $this->query($QUERY, PDOEXEC);
@@ -257,7 +257,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		$TABLE = static::escapeIdentifier($options['table']);
 		
 		$QUERY = "INSERT {$OPTIONS} {$TABLE} {$COLS} {$WHAT}";
-		if( $options['output'] == static::SQLQUERY ) {
+		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		return $this->query($QUERY, PDOEXEC);
@@ -288,7 +288,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 		$TABLE = static::escapeIdentifier($options['table']);
 		
 		$QUERY = "DELETE {$OPTIONS} FROM {$TABLE} {$WC} {$ORDER_BY} {$LIMIT}";
-		if( $options['output'] == static::SQLQUERY ) {
+		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		return $this->query($QUERY, PDOEXEC);
@@ -302,7 +302,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 *
 	 * It requires a successful call of insert() !
 	 */
-	public function lastID($table) {
+	public function lastId($table) {
 		return $this->query('SELECT LAST_INSERT_ID();', PDOFETCHFIRSTCOL);
 	}
 	
@@ -310,7 +310,7 @@ class SQLAdapterMySQL extends SQLAdapter {
 	 *
 	 * {@inheritDoc}
 	 * @param array $config
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::connect()
+	 * @see \Orpheus\SQLAdapter\SqlAdapter::connect()
 	 *
 	 */
 	protected function connect(array $config) {

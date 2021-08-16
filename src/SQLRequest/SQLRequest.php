@@ -6,51 +6,51 @@
 namespace Orpheus\SQLRequest;
 
 use Exception;
-use Orpheus\SQLAdapter\SQLAdapter;
+use Orpheus\SQLAdapter\SqlAdapter;
 
 /**
  * The main SQL Request class
  *
- * This class handles sql request to the DMBS server.
+ * This class handles sql request to the DBMS server.
  */
 abstract class SQLRequest {
 	
 	/**
 	 * The SQL Adapter
 	 *
-	 * @var SQLAdapter
+	 * @var SqlAdapter
 	 */
-	protected $sqlAdapter;
+	protected SqlAdapter $sqlAdapter;
 	
 	/**
 	 * The ID field
 	 *
 	 * @var string
 	 */
-	protected $idField;
+	protected string $idField;
 	
 	/**
 	 * The class
 	 *
-	 * @var string
+	 * @var string|null
 	 */
-	protected $class;
+	protected ?string $class;
 	
 	/**
 	 * The SQL Query Parameters
 	 *
 	 * @var string[]
 	 */
-	protected $parameters;
+	protected array $parameters;
 	
 	/**
 	 * Constructor
 	 *
-	 * @param \Orpheus\SQLAdapter\SQLAdapter $sqlAdapter
+	 * @param SqlAdapter $sqlAdapter
 	 * @param string $idField
 	 * @param string $class
 	 */
-	protected function __construct($sqlAdapter, $idField, $class = null) {
+	protected function __construct(SqlAdapter $sqlAdapter, string $idField, ?string $class = null) {
 		$this->setSQLAdapter($sqlAdapter);
 		$this->setIDField($idField);
 		$this->class = $class;
@@ -81,18 +81,15 @@ abstract class SQLRequest {
 	 * @return string
 	 * @throws Exception
 	 */
-	public function getQuery() {
+	public function getQuery(): string {
+		// Store previous output before changing to temp
 		$output = $this->get('output');
 		
 		try {
-			$this->set('output', SQLAdapter::SQLQUERY);
+			$this->set('output', SqlAdapter::SQL_QUERY);
 			$result = $this->run();
-		} catch( Exception $e ) {
-		
-		}
-		$this->set('output', $output);
-		if( isset($e) ) {
-			throw $e;
+		} finally {
+			$this->set('output', $output);
 		}
 		
 		return $result;
@@ -105,7 +102,7 @@ abstract class SQLRequest {
 	 * @param mixed $default
 	 * @return mixed
 	 */
-	protected function get($parameter, $default = null) {
+	protected function get(string $parameter, $default = null) {
 		return isset($this->parameters[$parameter]) ? $this->parameters[$parameter] : $default;
 	}
 	
@@ -116,8 +113,9 @@ abstract class SQLRequest {
 	 * @param mixed $value
 	 * @return $this
 	 */
-	protected function set($parameter, $value) {
+	protected function set(string $parameter, $value): SQLRequest {
 		$this->parameters[$parameter] = $value;
+		
 		return $this;
 	}
 	
@@ -143,18 +141,18 @@ abstract class SQLRequest {
 	/**
 	 * Get the SQL Adapter
 	 *
-	 * @return \Orpheus\SQLAdapter\SQLAdapter
+	 * @return SqlAdapter
 	 */
-	public function getSQLAdapter() {
+	public function getSQLAdapter(): SqlAdapter {
 		return $this->sqlAdapter;
 	}
 	
 	/**
 	 * Set the SQL Adapter
 	 *
-	 * @param SQLAdapter $sqlAdapter
+	 * @param SqlAdapter $sqlAdapter
 	 */
-	public function setSQLAdapter(SQLAdapter $sqlAdapter) {
+	public function setSQLAdapter(SqlAdapter $sqlAdapter) {
 		$this->sqlAdapter = $sqlAdapter;
 	}
 	
@@ -163,7 +161,7 @@ abstract class SQLRequest {
 	 *
 	 * @return string
 	 */
-	public function getIDField() {
+	public function getIDField(): string {
 		return $this->idField;
 	}
 	
@@ -179,12 +177,11 @@ abstract class SQLRequest {
 	
 	/**
 	 * Set/Get a parameter for this query
+	 * If there is a value (non-null), we set it, or we get it
 	 *
 	 * @param string $parameter
 	 * @param mixed $value
 	 * @return $this|mixed
-	 *
-	 * If there is a value (non-null), we set it or we get it
 	 */
 	protected function sget($parameter, $value = null) {
 		return $value === null ? $this->get($parameter) : $this->set($parameter, $value);
@@ -206,7 +203,7 @@ abstract class SQLRequest {
 	 * @param string $identifier
 	 * @return string
 	 */
-	public function escapeIdentifier($identifier) {
+	public function escapeIdentifier($identifier): string {
 		return $this->sqlAdapter->escapeIdentifier($identifier);
 	}
 	
@@ -216,19 +213,19 @@ abstract class SQLRequest {
 	 * @param string $value
 	 * @return string
 	 */
-	public function escapeValue($value) {
+	public function escapeValue($value): string {
 		return $this->sqlAdapter->escapeValue($value);
 	}
 	
 	/**
 	 * Create a select request
 	 *
-	 * @param SQLAdapter $sqlAdapter
+	 * @param SqlAdapter $sqlAdapter
 	 * @param string $idField The ID field
 	 * @param string $class The class used to instantiate entries
 	 * @return SQLSelectRequest
 	 */
-	public static function select($sqlAdapter = null, $idField = 'id', $class = null) {
+	public static function select($sqlAdapter = null, $idField = 'id', $class = null): SQLSelectRequest {
 		return new SQLSelectRequest($sqlAdapter, $idField, $class);
 	}
 }

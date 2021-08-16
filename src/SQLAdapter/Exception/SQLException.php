@@ -7,20 +7,21 @@ namespace Orpheus\SQLAdapter\Exception;
 
 use Exception;
 use PDOException;
+use RuntimeException;
 
 /**
  * The SQL exception class
  *
- * This exception is thrown when an occured caused by the SQL DBMS (or DBMS tools).
+ * This exception is thrown when an occurred caused by the SQL DBMS (or DBMS tools).
  */
-class SQLException extends Exception {
+class SQLException extends RuntimeException {
 	
 	/**
 	 * Action in progress while getting this exception
 	 *
-	 * @var string
+	 * @var string|null
 	 */
-	protected $action;
+	protected ?string $action;
 	
 	/**
 	 * Constructor
@@ -37,9 +38,9 @@ class SQLException extends Exception {
 	/**
 	 * Get the action
 	 *
-	 * @return string
+	 * @return ?string
 	 */
-	public function getAction() {
+	public function getAction(): ?string {
 		return $this->action;
 	}
 	

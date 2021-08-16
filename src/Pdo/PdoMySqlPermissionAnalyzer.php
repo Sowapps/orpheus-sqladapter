@@ -34,17 +34,19 @@ class PdoMySqlPermissionAnalyzer extends PdoPermissionAnalyzer {
 		$this->permissions = $permissions;
 	}
 	
-	public function canDatabaseCreate() {
+	public function canDatabaseCreate(): bool {
 		return $this->hasPermission(self::LEVEL_GLOBAL, null, self::RIGHT_CREATE);
 	}
 	
 	/**
+	 * TODO Implement this method
+	 *
 	 * @param $level
 	 * @param $object
 	 * @param $right
 	 */
-	public function hasPermission($level, $object, $right) {
-		
+	public function hasPermission($level, $object, $right): bool {
+		return true;
 	}
 	
 	/**

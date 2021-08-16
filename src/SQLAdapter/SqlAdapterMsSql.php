@@ -9,14 +9,14 @@ use Exception;
 use PDO;
 
 /**
- * The MSSQL Adapter class
+ * The MS Sql Adapter class
  *
  * This class is the sql adapter for MSSQL.
  *
  * Install method for debian:
  * http://atutility.com/2007/09/14/install-pdo-pdo_sqlite-pdo_dblib-pdo_mysql
  */
-class SQLAdapterMSSQL extends SQLAdapter {
+class SqlAdapterMsSql extends SqlAdapter {
 	
 	/**
 	 * Select defaults options
@@ -32,7 +32,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		'number'         => -1,//-1 => All
 		'number_percent' => false,// false => No Percent option
 		'offset'         => 0,//0 => The start
-		'output'         => SQLAdapter::ARR_ASSOC,//Associative Array
+		'output'         => SqlAdapter::ARR_ASSOC,//Associative Array
 	];
 	/**
 	 * Update defaults options
@@ -47,7 +47,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		'number'         => -1,//-1 => All
 		'number_percent' => false,// false => No Percent option
 		'offset'         => 0,//0 => The start
-		'output'         => SQLAdapter::NUMBER,//Number of updated lines
+		'output'         => SqlAdapter::NUMBER,//Number of updated lines
 	];
 	/**
 	 * Delete defaults options
@@ -63,7 +63,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		'number'         => -1,//-1 => All
 		'number_percent' => false,// false => No Percent option
 		'offset'         => 0,//0 => The start
-		'output'         => SQLAdapter::NUMBER,//Number of deleted lines
+		'output'         => SqlAdapter::NUMBER,//Number of deleted lines
 	];
 	/**
 	 * Insert defaults options
@@ -75,7 +75,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		'delayed'     => false,//false => Not delayed
 		'ignore'      => false,//false => Not ignore errors
 		'into'        => true,//true => INSERT INTO
-		'output'      => SQLAdapter::NUMBER,//Number of inserted lines
+		'output'      => SqlAdapter::NUMBER,//Number of inserted lines
 	];
 	/**
 	 * Last ID
@@ -89,7 +89,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * {@inheritDoc}
 	 * @param array $options The options used to build the query
 	 * @see http://msdn.microsoft.com/en-us/library/aa259187%28v=sql.80%29.aspx
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::select()
+	 * @see \Orpheus\SQLAdapter\SqlAdapter::select()
 	 */
 	public function select(array $options = []) {
 		$options += self::$selectDefaults;
@@ -105,7 +105,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( empty($options['what']) ) {
 			$options['what'] = '*';
 		}
-		$idField = !empty($options['idField']) ? $options['idField'] : $this->IDFIELD;
+		$idField = !empty($options['idField']) ? $options['idField'] : $this->idField;
 		$OPTIONS = '';
 		$WHAT = is_array($options['what']) ? implode(', ', $options['what']) : $options['what'];
 		$WC = $options['where'] ? 'WHERE ' . (is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
@@ -123,7 +123,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		} else {
 			$QUERY = "SELECT {$OPTIONS} {$WHAT} FROM {$options['table']} {$WC} {$ORDERBY};";
 		}
-		if( $options['output'] === static::SQLQUERY ) {
+		if( $options['output'] === static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		$results = $this->query($QUERY, ($options['output'] === static::STATEMENT) ? PDOSTMT : PDOFETCHALL);
@@ -150,7 +150,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( empty($options['what']) ) {
 			throw new Exception('No field');
 		}
-		$idField = !empty($options['idField']) ? $options['idField'] : $this->IDFIELD;
+		$idField = !empty($options['idField']) ? $options['idField'] : $this->idField;
 		$WC = (!empty($options['where'])) ? 'WHERE ' . $options['where'] : '';
 		$ORDERBY = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
 		
@@ -169,7 +169,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 			$QUERY = "UPDATE {$options['table']} SET {$WHAT} {$WC} {$ORDERBY};";
 		}
 		
-		if( $options['output'] == static::SQLQUERY ) {
+		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		
@@ -181,7 +181,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 * {@inheritDoc}
 	 * @param array $options The options used to build the query
 	 * @see http://msdn.microsoft.com/en-us/library/ms174335.aspx
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::insert()
+	 * @see \Orpheus\SQLAdapter\SqlAdapter::insert()
 	 */
 	public function insert(array $options = []) {
 		$options += self::$insertDefaults;
@@ -216,7 +216,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		
 		$QUERY = "INSERT {$OPTIONS} {$options['table']} {$COLS} {$WHAT};";
 		// SELECT SCOPE_IDENTITY() LAST_ID;
-		if( $options['output'] == static::SQLQUERY ) {
+		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		
@@ -234,10 +234,10 @@ class SQLAdapterMSSQL extends SQLAdapter {
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
 		}
-		$idField = !empty($options['idField']) ? $options['idField'] : $this->IDFIELD;
+		$idField = !empty($options['idField']) ? $options['idField'] : $this->idField;
 		$WC = (!empty($options['where'])) ? 'WHERE ' . $options['where'] : '';
 		if( empty($options['orderby']) ) {
-			$options['orderby'] = $this->IDFIELD;
+			$options['orderby'] = $this->idField;
 		}
 		$ORDERBY = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
 		
@@ -255,7 +255,7 @@ class SQLAdapterMSSQL extends SQLAdapter {
 			$QUERY = "DELETE FROM {$options['table']} {$WC} {$ORDERBY};";
 		}
 		
-		if( $options['output'] == static::SQLQUERY ) {
+		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		
@@ -266,9 +266,9 @@ class SQLAdapterMSSQL extends SQLAdapter {
 	 *
 	 * {@inheritDoc}
 	 * @param string $table The table to get the last inserted id
-	 * @see \Orpheus\SQLAdapter\SQLAdapter::lastID()
+	 * @see \Orpheus\SQLAdapter\SqlAdapter::lastId()
 	 */
-	public function lastID($table) {
+	public function lastId($table) {
 		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);
 		
 		return $r['LAST_ID'];
