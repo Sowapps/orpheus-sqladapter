@@ -23,7 +23,7 @@ class SqlAdapterMsSql extends SqlAdapter {
 	 *
 	 * @var array
 	 */
-	protected static $selectDefaults = [
+	protected static array $selectDefaults = [
 		'what'           => '',//table.* => All fields
 		'join'           => '',// No join
 		'where'          => '',//Additionnal Whereclause
@@ -34,12 +34,13 @@ class SqlAdapterMsSql extends SqlAdapter {
 		'offset'         => 0,//0 => The start
 		'output'         => SqlAdapter::ARR_ASSOC,//Associative Array
 	];
+	
 	/**
 	 * Update defaults options
 	 *
 	 * @var array
 	 */
-	protected static $updateDefaults = [
+	protected static array $updateDefaults = [
 		'lowpriority'    => false,//false => Not low priority
 		'ignore'         => false,//false => Not ignore errors
 		'where'          => '',//Additionnal Whereclause
@@ -49,12 +50,13 @@ class SqlAdapterMsSql extends SqlAdapter {
 		'offset'         => 0,//0 => The start
 		'output'         => SqlAdapter::NUMBER,//Number of updated lines
 	];
+	
 	/**
 	 * Delete defaults options
 	 *
 	 * @var array
 	 */
-	protected static $deleteDefaults = [
+	protected static array $deleteDefaults = [
 		'lowpriority'    => false,//false => Not low priority
 		'quick'          => false,//false => Not merge index leaves
 		'ignore'         => false,//false => Not ignore errors
@@ -65,31 +67,28 @@ class SqlAdapterMsSql extends SqlAdapter {
 		'offset'         => 0,//0 => The start
 		'output'         => SqlAdapter::NUMBER,//Number of deleted lines
 	];
+	
 	/**
 	 * Insert defaults options
 	 *
 	 * @var array
 	 */
-	protected static $insertDefaults = [
+	protected static array $insertDefaults = [
 		'lowpriority' => false,//false => Not low priority
 		'delayed'     => false,//false => Not delayed
 		'ignore'      => false,//false => Not ignore errors
 		'into'        => true,//true => INSERT INTO
 		'output'      => SqlAdapter::NUMBER,//Number of inserted lines
 	];
-	/**
-	 * Last ID
-	 *
-	 * @var integer
-	 */
-	protected $lastID = 0;
 	
 	/**
 	 *
 	 * {@inheritDoc}
 	 * @param array $options The options used to build the query
+	 * @return mixed|string
+	 * @throws Exception
 	 * @see http://msdn.microsoft.com/en-us/library/aa259187%28v=sql.80%29.aspx
-	 * @see \Orpheus\SQLAdapter\SqlAdapter::select()
+	 * @see SqlAdapter::select()
 	 */
 	public function select(array $options = []) {
 		$options += self::$selectDefaults;
@@ -141,8 +140,10 @@ class SqlAdapterMsSql extends SqlAdapter {
 	 * {@inheritDoc}
 	 * @see http://msdn.microsoft.com/en-us/library/ms177523.aspx
 	 * @param array $options The options used to build the query
+	 * @return int
+	 * @throws Exception
 	 */
-	public function update(array $options = []) {
+	public function update(array $options = []): int {
 		$options += self::$updateDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -290,4 +291,5 @@ class SqlAdapterMsSql extends SqlAdapter {
 	public static function getDriver() {
 		return 'dblib';
 	}
+	
 }

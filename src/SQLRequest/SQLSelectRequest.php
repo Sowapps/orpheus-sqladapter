@@ -31,7 +31,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @var PDOStatement
 	 */
-	protected PDOStatement $fetchLastStatement;
+	protected ?PDOStatement $fetchLastStatement = null;
 	
 	/**
 	 * The current fetch is expecting an object
@@ -45,14 +45,14 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @var int
 	 */
-	protected int $currentIndex;
+	protected int $currentIndex = -1;
 	
 	/**
 	 * The current row
 	 *
 	 * @var mixed
 	 */
-	protected $currentRow;
+	protected $currentRow = null;
 	
 	/**
 	 * The filter list

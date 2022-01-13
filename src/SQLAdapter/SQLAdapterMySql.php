@@ -20,7 +20,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 *
 	 * @var array
 	 */
-	protected static $selectDefaults = [
+	protected static array $selectDefaults = [
 		'what'     => '',// table.* => All fields
 		'join'     => '',// No join
 		'where'    => '',// Additionnal Whereclause
@@ -38,7 +38,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 *
 	 * @var array
 	 */
-	protected static $updateDefaults = [
+	protected static array $updateDefaults = [
 		'lowpriority' => false,//false => Not low priority
 		'ignore'      => false,//false => Not ignore errors
 		'where'       => '',//Additionnal Whereclause
@@ -53,7 +53,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 *
 	 * @var array
 	 */
-	protected static $deleteDefaults = [
+	protected static array $deleteDefaults = [
 		'lowpriority' => false,//false => Not low priority
 		'quick'       => false,//false => Not merge index leaves
 		'ignore'      => false,//false => Not ignore errors
@@ -69,7 +69,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 *
 	 * @var array
 	 */
-	protected static $insertDefaults = [
+	protected static array $insertDefaults = [
 		'lowpriority' => false,//false => Not low priority
 		'delayed'     => false,//false => Not delayed
 		'ignore'      => false,//false => Not ignore errors
@@ -125,6 +125,7 @@ class SQLAdapterMySql extends SqlAdapter {
 				$r = (object) $r;//stdClass
 			}
 		}
+		
 		return (!empty($results) && $output === static::ARR_FIRST) ? $results[0] : $results;
 	}
 	
@@ -172,18 +173,18 @@ class SQLAdapterMySql extends SqlAdapter {
 			}
 			$joinStr .= ($joinStr ? ', ' : '') . $join;
 		}
+		
 		return $joinStr;
 	}
 	
 	/**
 	 * Update something in database
+	 * Using pdo_query(), It parses the query from an array to a UPDATE query.
 	 *
 	 * @param array $options The options used to build the query.
 	 * @return int The number of affected rows.
 	 * @throws Exception
 	 * @see http://dev.mysql.com/doc/refman/5.0/en/update.html
-	 *
-	 * Using pdo_query(), It parses the query from an array to a UPDATE query.
 	 */
 	public function update(array $options = []): int {
 		$options += self::$updateDefaults;
@@ -208,6 +209,7 @@ class SQLAdapterMySql extends SqlAdapter {
 		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
+		
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
@@ -260,6 +262,7 @@ class SQLAdapterMySql extends SqlAdapter {
 		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
+		
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
@@ -291,6 +294,7 @@ class SQLAdapterMySql extends SqlAdapter {
 		if( $options['output'] == static::SQL_QUERY ) {
 			return $QUERY;
 		}
+		
 		return $this->query($QUERY, PDOEXEC);
 	}
 	
@@ -330,4 +334,5 @@ class SQLAdapterMySql extends SqlAdapter {
 	public static function getDriver() {
 		return 'mysql';
 	}
+	
 }

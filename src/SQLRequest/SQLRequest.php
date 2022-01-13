@@ -41,7 +41,7 @@ abstract class SQLRequest {
 	 *
 	 * @var string[]
 	 */
-	protected array $parameters;
+	protected array $parameters = [];
 	
 	/**
 	 * Constructor
@@ -61,7 +61,7 @@ abstract class SQLRequest {
 	 *
 	 * @param string $idField
 	 */
-	public function setIDField($idField) {
+	public function setIDField(string $idField) {
 		$this->idField = $idField;
 	}
 	
@@ -103,7 +103,7 @@ abstract class SQLRequest {
 	 * @return mixed
 	 */
 	protected function get(string $parameter, $default = null) {
-		return isset($this->parameters[$parameter]) ? $this->parameters[$parameter] : $default;
+		return $this->parameters[$parameter] ?? $default;
 	}
 	
 	/**
@@ -111,9 +111,9 @@ abstract class SQLRequest {
 	 *
 	 * @param string $parameter
 	 * @param mixed $value
-	 * @return $this
+	 * @return self
 	 */
-	protected function set(string $parameter, $value): SQLRequest {
+	protected function set(string $parameter, $value): self {
 		$this->parameters[$parameter] = $value;
 		
 		return $this;
@@ -169,7 +169,7 @@ abstract class SQLRequest {
 	 * Set/Get the table parameter
 	 *
 	 * @param string $table
-	 * @return $this|mixed
+	 * @return self|string
 	 */
 	public function from($table = null) {
 		return $this->sget('table', $table);
@@ -222,10 +222,11 @@ abstract class SQLRequest {
 	 *
 	 * @param SqlAdapter $sqlAdapter
 	 * @param string $idField The ID field
-	 * @param string $class The class used to instantiate entries
+	 * @param string|null $class The class used to instantiate entries
 	 * @return SQLSelectRequest
+	 * @deprecated Seems not used, there are other ways to do
 	 */
-	public static function select($sqlAdapter = null, $idField = 'id', $class = null): SQLSelectRequest {
+	public static function select(SqlAdapter $sqlAdapter, string $idField = 'id', ?string $class = null): SQLSelectRequest {
 		return new SQLSelectRequest($sqlAdapter, $idField, $class);
 	}
 }
