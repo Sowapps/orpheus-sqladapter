@@ -16,8 +16,8 @@
  */
 
 use Orpheus\Config\IniConfig;
-use Orpheus\SQLAdapter\Exception\SQLException;
-use Orpheus\SQLAdapter\SqlAdapter;
+use Orpheus\SqlAdapter\Exception\SqlException;
+use Orpheus\SqlAdapter\SqlAdapter;
 
 
 defifn('DBCONF', 'database');
@@ -149,7 +149,7 @@ function ensure_pdoinstance($instance = null) {
 }
 
 /**
- * @throws SQLException
+ * @throws SqlException
  */
 function pdo_connect($settings, $selectDatabase = true): ?PDO {
 	// If There is no driver given, it is an error.
@@ -296,12 +296,12 @@ function pdo_query($query, $fetch = PDOQUERY, $instance = null) {
  * @param string $action Optional information about what the script was doing.
  * @param int $fetch The fetch flags, if PDOERROR_MINOR, this function does nothing. Optional, default value is 0.
  * @param PDOException $original The original exception. Optional, default value is null.
- * @throws SQLException
+ * @throws SqlException
  */
 function pdo_error($report, $action = '', $fetch = 0, $original = null) {
 	if( bintest($fetch, PDOERROR_MINOR) ) {
 		return;
 	}
 	sql_error($report, $action, true);
-	throw new SQLException($report, $action, $original);
+	throw new SqlException($report, $action, $original);
 }

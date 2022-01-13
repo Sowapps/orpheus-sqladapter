@@ -3,7 +3,7 @@
  * SQLAdapterMySQL
  */
 
-namespace Orpheus\SQLAdapter;
+namespace Orpheus\SqlAdapter;
 
 use Exception;
 use PDO;
@@ -13,7 +13,7 @@ use PDO;
  *
  * This class is the sql adapter for MySQL.
  */
-class SQLAdapterMySql extends SqlAdapter {
+class SqlAdapterMySql extends SqlAdapter {
 	
 	/**
 	 * Select defaults options
@@ -133,7 +133,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 *
 	 * {@inheritDoc}
 	 * @param string $identifier The identifier to escape
-	 * @see \Orpheus\SQLAdapter\SqlAdapter::escapeIdentifier()
+	 * @see \Orpheus\SqlAdapter\SqlAdapter::escapeIdentifier()
 	 *
 	 */
 	public function escapeIdentifier($identifier): string {
@@ -314,7 +314,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 *
 	 * {@inheritDoc}
 	 * @param array $config
-	 * @see \Orpheus\SQLAdapter\SqlAdapter::connect()
+	 * @see \Orpheus\SqlAdapter\SqlAdapter::connect()
 	 *
 	 */
 	protected function connect(array $config) {

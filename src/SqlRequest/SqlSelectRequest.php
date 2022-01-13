@@ -3,13 +3,13 @@
  * SQLSelectRequest
  */
 
-namespace Orpheus\SQLRequest;
+namespace Orpheus\SqlRequest;
 
 use DateTime;
 use Exception;
 use Iterator;
 use Orpheus\Publisher\PermanentObject\PermanentObject;
-use Orpheus\SQLAdapter\SqlAdapter;
+use Orpheus\SqlAdapter\SqlAdapter;
 use PDOStatement;
 
 /**
@@ -17,7 +17,7 @@ use PDOStatement;
  *
  * This class handles sql SELECT request to the DBMS server.
  */
-class SQLSelectRequest extends SQLRequest implements Iterator {
+class SqlSelectRequest extends SqlRequest implements Iterator {
 	
 	/**
 	 * Is using cache for results
@@ -66,7 +66,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function filter(callable $filter): SQLSelectRequest {
+	public function filter(callable $filter): SqlSelectRequest {
 		$this->filters[] = $filter;
 		
 		return $this;
@@ -78,7 +78,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @return $this
 	 * @see setUsingCache()
 	 */
-	public function disableCache(): SQLSelectRequest {
+	public function disableCache(): SqlSelectRequest {
 		return $this->setUsingCache(false);
 	}
 	
@@ -88,7 +88,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * @param boolean $usingCache
 	 * @return $this
 	 */
-	public function setUsingCache(bool $usingCache): SQLSelectRequest {
+	public function setUsingCache(bool $usingCache): SqlSelectRequest {
 		$this->usingCache = $usingCache;
 		
 		return $this;
@@ -215,7 +215,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the order by filter
 	 *
 	 * @param string $fields
-	 * @return mixed|SQLSelectRequest
+	 * @return mixed|SqlSelectRequest
 	 */
 	public function orderBy($fields = null) {
 		return $this->sget('orderby', $fields);
@@ -225,7 +225,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the group by filter
 	 *
 	 * @param string $field
-	 * @return mixed|SQLSelectRequest
+	 * @return mixed|SqlSelectRequest
 	 */
 	public function groupBy(?string $field = null) {
 		return $this->sget('groupby', $field);
@@ -235,7 +235,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the number of expected result (as limit)
 	 *
 	 * @param int $number
-	 * @return mixed|SQLSelectRequest
+	 * @return mixed|SqlSelectRequest
 	 */
 	public function number(?int $number = null) {
 		return $this->maxRows($number);
@@ -245,7 +245,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 * Set/Get the number of expected result (as limit)
 	 *
 	 * @param int $number
-	 * @return mixed|SQLSelectRequest
+	 * @return mixed|SqlSelectRequest
 	 */
 	public function maxRows(?int $number = null) {
 		return $this->sget('number', $number);
@@ -355,7 +355,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function asObject(): SQLSelectRequest {
+	public function asObject(): SqlSelectRequest {
 		return $this->output(SqlAdapter::OBJECT);
 	}
 	
@@ -364,7 +364,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function asObjectList(): SQLSelectRequest {
+	public function asObjectList(): SqlSelectRequest {
 		return $this->output(SqlAdapter::ARR_OBJECTS);
 	}
 	
@@ -373,7 +373,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function asArrayList(): SQLSelectRequest {
+	public function asArrayList(): SqlSelectRequest {
 		return $this->output(SqlAdapter::ARR_ASSOC);
 	}
 	
@@ -411,7 +411,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	 *
 	 * @return $this
 	 */
-	public function asArray(): SQLSelectRequest {
+	public function asArray(): SqlSelectRequest {
 		return $this->output(SqlAdapter::ARR_FIRST);
 	}
 	
@@ -490,7 +490,7 @@ class SQLSelectRequest extends SQLRequest implements Iterator {
 	
 	/**
 	 * {@inheritDoc}
-	 * @see \Orpheus\SQLRequest\SQLRequest::run()
+	 * @see \Orpheus\SqlRequest\SqlRequest::run()
 	 */
 	public function run() {
 		$options = $this->parameters;

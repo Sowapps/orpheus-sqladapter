@@ -3,17 +3,17 @@
  * SQLRequest
  */
 
-namespace Orpheus\SQLRequest;
+namespace Orpheus\SqlRequest;
 
 use Exception;
-use Orpheus\SQLAdapter\SqlAdapter;
+use Orpheus\SqlAdapter\SqlAdapter;
 
 /**
  * The main SQL Request class
  *
  * This class handles sql request to the DBMS server.
  */
-abstract class SQLRequest {
+abstract class SqlRequest {
 	
 	/**
 	 * The SQL Adapter
@@ -128,7 +128,7 @@ abstract class SQLRequest {
 	 * Get a clone of current request
 	 *
 	 * @param string $withParameters True to also copy parameters, default to true
-	 * @return SQLRequest
+	 * @return SqlRequest
 	 */
 	public function getClone($withParameters = true) {
 		$clone = new static($this->sqlAdapter, $this->idField, $this->class);
@@ -223,10 +223,11 @@ abstract class SQLRequest {
 	 * @param SqlAdapter $sqlAdapter
 	 * @param string $idField The ID field
 	 * @param string|null $class The class used to instantiate entries
-	 * @return SQLSelectRequest
+	 * @return SqlSelectRequest
 	 * @deprecated Seems not used, there are other ways to do
 	 */
-	public static function select(SqlAdapter $sqlAdapter, string $idField = 'id', ?string $class = null): SQLSelectRequest {
-		return new SQLSelectRequest($sqlAdapter, $idField, $class);
+	public static function select(SqlAdapter $sqlAdapter, string $idField = 'id', ?string $class = null): SqlSelectRequest {
+		return new SqlSelectRequest($sqlAdapter, $idField, $class);
 	}
+	
 }

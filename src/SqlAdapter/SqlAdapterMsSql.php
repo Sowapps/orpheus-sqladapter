@@ -3,7 +3,7 @@
  * SQLAdapterMSSQL
  */
 
-namespace Orpheus\SQLAdapter;
+namespace Orpheus\SqlAdapter;
 
 use Exception;
 use PDO;
@@ -182,9 +182,9 @@ class SqlAdapterMsSql extends SqlAdapter {
 	 * {@inheritDoc}
 	 * @param array $options The options used to build the query
 	 * @see http://msdn.microsoft.com/en-us/library/ms174335.aspx
-	 * @see \Orpheus\SQLAdapter\SqlAdapter::insert()
+	 * @see \Orpheus\SqlAdapter\SqlAdapter::insert()
 	 */
-	public function insert(array $options = []) {
+	public function insert(array $options = []): int {
 		$options += self::$insertDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -230,7 +230,7 @@ class SqlAdapterMsSql extends SqlAdapter {
 	 * @param array $options The options used to build the query
 	 * @see http://msdn.microsoft.com/en-us/library/ms189835.aspx
 	 */
-	public function delete(array $options = []) {
+	public function delete(array $options = []): int {
 		$options += self::$deleteDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -267,7 +267,7 @@ class SqlAdapterMsSql extends SqlAdapter {
 	 *
 	 * {@inheritDoc}
 	 * @param string $table The table to get the last inserted id
-	 * @see \Orpheus\SQLAdapter\SqlAdapter::lastId()
+	 * @see \Orpheus\SqlAdapter\SqlAdapter::lastId()
 	 */
 	public function lastId($table) {
 		$r = $this->query("SELECT SCOPE_IDENTITY() AS LAST_ID;", PDOFETCH);

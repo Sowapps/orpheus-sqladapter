@@ -3,13 +3,13 @@
  * SQLAdapter
  */
 
-namespace Orpheus\SQLAdapter;
+namespace Orpheus\SqlAdapter;
 
 use Exception;
 use Orpheus;
 use Orpheus\Cache\APCache;
 use Orpheus\Config\IniConfig;
-use Orpheus\SQLAdapter\Exception\SQLException;
+use Orpheus\SqlAdapter\Exception\SqlException;
 use PDO;
 
 /**
@@ -70,7 +70,7 @@ abstract class SqlAdapter {
 	 * @var array
 	 */
 	protected static array $adapters = [
-		'mysql' => 'Orpheus\SQLAdapter\SQLAdapterMySql',
+		'mysql' => 'Orpheus\SQLAdapter\SqlAdapterMySql',
 		'mssql' => 'Orpheus\SQLAdapter\SqlAdapterMsSql',
 	];
 	
@@ -259,7 +259,7 @@ abstract class SqlAdapter {
 	 * Set the IDFIELD
 	 *
 	 * @param string $field The new ID field.
-	 * @return \Orpheus\SQLAdapter\SqlAdapter
+	 * @return \Orpheus\SqlAdapter\SqlAdapter
 	 *
 	 * Set the IDFIELD value to $field
 	 */
@@ -311,8 +311,8 @@ abstract class SqlAdapter {
 	 * Get an unique instance of SQLAdapter by its name
 	 *
 	 * @param string $name Name of the instance, default value is "default"
-	 * @return Orpheus\SQLAdapter\SqlAdapter
-	 * @throws SQLException
+	 * @return Orpheus\SqlAdapter\SqlAdapter
+	 * @throws SqlException
 	 */
 	public static function getInstance($name = null): SqlAdapter {
 		if( !$name ) {
@@ -329,24 +329,24 @@ abstract class SqlAdapter {
 	 * Try to make a SQLAdapter by its name loading from configuration
 	 *
 	 * @param string $name
-	 * @return Orpheus\SQLAdapter\SqlAdapter
-	 * @throws SQLException
+	 * @return Orpheus\SqlAdapter\SqlAdapter
+	 * @throws SqlException
 	 */
 	public static function make($name = 'default'): SqlAdapter {
 		$configs = static::listConfig();
 		
 		if( !isset($configs[$name]) ) {
-			throw new SQLException('Database configuration with name "' . $name . '" not found.', 'Loading configuration');
+			throw new SqlException('Database configuration with name "' . $name . '" not found.', 'Loading configuration');
 		}
 		
 		$config = $configs[$name];
 		
 		if( empty($config['driver']) ) {
-			throw new SQLException('Database configuration with name "' . $name . '" has no driver property.', 'Loading configuration');
+			throw new SqlException('Database configuration with name "' . $name . '" has no driver property.', 'Loading configuration');
 		}
 		
 		if( empty(static::$adapters[$config['driver']]) ) {
-			throw new SQLException('Database configuration with name "' . $name . '" requires an unknown driver "' . $config['driver'] . '".', 'Loading configuration');
+			throw new SqlException('Database configuration with name "' . $name . '" requires an unknown driver "' . $config['driver'] . '".', 'Loading configuration');
 		}
 		
 		$adapterClass = static::$adapters[$config['driver']];

@@ -3,7 +3,7 @@
  * SQLException
  */
 
-namespace Orpheus\SQLAdapter\Exception;
+namespace Orpheus\SqlAdapter\Exception;
 
 use Exception;
 use PDOException;
@@ -14,7 +14,7 @@ use RuntimeException;
  *
  * This exception is thrown when an occurred caused by the SQL DBMS (or DBMS tools).
  */
-class SQLException extends RuntimeException {
+class SqlException extends RuntimeException {
 	
 	/**
 	 * Action in progress while getting this exception
