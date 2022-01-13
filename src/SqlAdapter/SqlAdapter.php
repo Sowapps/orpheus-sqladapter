@@ -1,6 +1,6 @@
 <?php
 /**
- * SQLAdapter
+ * SqlAdapter
  */
 
 namespace Orpheus\SqlAdapter;
@@ -70,8 +70,8 @@ abstract class SqlAdapter {
 	 * @var array
 	 */
 	protected static array $adapters = [
-		'mysql' => 'Orpheus\SQLAdapter\SqlAdapterMySql',
-		'mssql' => 'Orpheus\SQLAdapter\SqlAdapterMsSql',
+		'mysql' => 'Orpheus\SqlAdapter\SqlAdapterMySql',
+		'mssql' => 'Orpheus\SqlAdapter\SqlAdapterMsSql',
 	];
 	
 	/**
@@ -308,7 +308,7 @@ abstract class SqlAdapter {
 	}
 	
 	/**
-	 * Get an unique instance of SQLAdapter by its name
+	 * Get an unique instance of SqlAdapter by its name
 	 *
 	 * @param string $name Name of the instance, default value is "default"
 	 * @return Orpheus\SqlAdapter\SqlAdapter
@@ -326,7 +326,7 @@ abstract class SqlAdapter {
 	}
 	
 	/**
-	 * Try to make a SQLAdapter by its name loading from configuration
+	 * Try to make a SqlAdapter by its name loading from configuration
 	 *
 	 * @param string $name
 	 * @return Orpheus\SqlAdapter\SqlAdapter

@@ -1,6 +1,6 @@
 <?php
 /**
- * SQLException
+ * SqlException
  */
 
 namespace Orpheus\SqlAdapter\Exception;
@@ -76,6 +76,8 @@ class SqlException extends RuntimeException {
 			}
 			die('A fatal error occurred, please report it to an admin.<br />Une erreur fatale est survenue, veuillez contacter un administrateur.<br />');
 		}
+		
 		return '';
 	}
+	
 }

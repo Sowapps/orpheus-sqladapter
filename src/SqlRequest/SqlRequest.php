@@ -1,6 +1,6 @@
 <?php
 /**
- * SQLRequest
+ * SqlRequest
  */
 
 namespace Orpheus\SqlRequest;
@@ -51,7 +51,7 @@ abstract class SqlRequest {
 	 * @param string $class
 	 */
 	protected function __construct(SqlAdapter $sqlAdapter, string $idField, ?string $class = null) {
-		$this->setSQLAdapter($sqlAdapter);
+		$this->setSqlAdapter($sqlAdapter);
 		$this->setIDField($idField);
 		$this->class = $class;
 	}
@@ -143,7 +143,7 @@ abstract class SqlRequest {
 	 *
 	 * @return SqlAdapter
 	 */
-	public function getSQLAdapter(): SqlAdapter {
+	public function getSqlAdapter(): SqlAdapter {
 		return $this->sqlAdapter;
 	}
 	
@@ -152,7 +152,7 @@ abstract class SqlRequest {
 	 *
 	 * @param SqlAdapter $sqlAdapter
 	 */
-	public function setSQLAdapter(SqlAdapter $sqlAdapter) {
+	public function setSqlAdapter(SqlAdapter $sqlAdapter) {
 		$this->sqlAdapter = $sqlAdapter;
 	}
 	

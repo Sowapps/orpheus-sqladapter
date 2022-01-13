@@ -1,6 +1,6 @@
 <?php
 /**
- * SQLAdapterMySQL
+ * SqlAdapterMySQL
  */
 
 namespace Orpheus\SqlAdapter;

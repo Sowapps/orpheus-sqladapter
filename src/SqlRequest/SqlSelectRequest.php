@@ -1,6 +1,6 @@
 <?php
 /**
- * SQLSelectRequest
+ * SqlSelectRequest
  */
 
 namespace Orpheus\SqlRequest;
