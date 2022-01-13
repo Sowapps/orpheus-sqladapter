@@ -34,32 +34,35 @@ abstract class SqlAdapter {
 	 *
 	 * @var array
 	 */
-	protected static $selectDefaults = [];//!< First element only (from ARR_ASSOC)
+	protected static array $selectDefaults = [];//!< First element only (from ARR_ASSOC)
+	
 	/**
 	 * Update defaults options
 	 *
 	 * @var array
 	 */
-	protected static $updateDefaults = [];//!< Array of associative arrays
+	protected static array $updateDefaults = [];//!< Array of associative arrays
+	
 	/**
 	 * Delete defaults options
 	 *
 	 * @var array
 	 */
-	protected static $deleteDefaults = [];//!< Array of objects
+	protected static array $deleteDefaults = [];//!< Array of objects
+	
 	/**
 	 * Insert defaults options
 	 *
 	 * @var array
 	 */
-	protected static $insertDefaults = [];//!< SQL Statement
+	protected static array $insertDefaults = [];//!< SQL Statement
 	
 	/**
 	 * All Adapter instances by name
 	 *
 	 * @var SqlAdapter[]
 	 */
-	protected static $instances = [];//!< Query String
+	protected static array $instances = [];//!< Query String
 	
 	/**
 	 * Store drivers' adapter
@@ -74,7 +77,7 @@ abstract class SqlAdapter {
 	/**
 	 * Configurations
 	 */
-	protected static array $configs;
+	protected static ?array $configs = null;
 	
 	/**
 	 * The ID field
@@ -95,15 +98,11 @@ abstract class SqlAdapter {
 	 * @param mixed $config Instance config to use, maybe a config name, a config array or a PDO instance
 	 */
 	public function __construct($name, $config) {
-		
 		if( is_object($name) ) {
 			// Deprecated, BC only
 			// TODO Remove this case
 			$this->pdo = $name;
-			
-			// If is array ?
 		} else {
-			
 			$this->connect($config + static::getDefaults());
 			static::registerInstance($name, $this);
 		}
