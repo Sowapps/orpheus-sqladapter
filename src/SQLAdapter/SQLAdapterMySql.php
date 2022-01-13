@@ -185,7 +185,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 *
 	 * Using pdo_query(), It parses the query from an array to a UPDATE query.
 	 */
-	public function update(array $options = []) {
+	public function update(array $options = []): int {
 		$options += self::$updateDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -221,7 +221,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 * Accept only the String syntax for what option.
 	 * @throws Exception
 	 */
-	public function insert(array $options = []) {
+	public function insert(array $options = []): int {
 		$options += self::$insertDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -272,7 +272,7 @@ class SQLAdapterMySql extends SqlAdapter {
 	 * It parses the query from an array to a DELETE query.
 	 * @throws Exception
 	 */
-	public function delete(array $options = []) {
+	public function delete(array $options = []): int {
 		$options += self::$deleteDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
