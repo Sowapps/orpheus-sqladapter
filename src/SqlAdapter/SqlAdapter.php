@@ -210,14 +210,14 @@ abstract class SqlAdapter {
 	/**
 	 * Format SQL value
 	 *
-	 * @param string $value The value to format.
+	 * @param mixed $value The value to format.
 	 * @return string The formatted value.
 	 *
 	 * Format the given value to the matching SQL type.
 	 * If the value is a float, we make french decimal compatible with SQL.
 	 * If null, we use the NULL value, else we consider it as a string value.
 	 */
-	public function formatValue(string $value): string {
+	public function formatValue($value): string {
 		return $this->escapeValue($value);
 	}
 	

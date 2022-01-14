@@ -1,6 +1,6 @@
 <?php
 /**
- * SQLException
+ * SqlException
  */
 
 namespace Orpheus\SqlAdapter\Exception;
