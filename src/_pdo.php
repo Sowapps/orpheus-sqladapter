@@ -8,7 +8,7 @@
  * Library of PDO functions to easily use DBMS.
  *
  * Useful constants:
- * LOGSPATH
+ * LOGS_PATH
  * PDOLOGFILENAME
  *
  * Required functions:
