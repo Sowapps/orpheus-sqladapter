@@ -108,6 +108,24 @@ abstract class SqlAdapter {
 		}
 	}
 	
+	public function startTransaction(): SqlAdapter {
+		$this->pdo->beginTransaction();
+		
+		return $this;
+	}
+	
+	public function endTransaction(): SqlAdapter {
+		$this->pdo->commit();
+		
+		return $this;
+	}
+	
+	public function revertTransaction(): SqlAdapter {
+		$this->pdo->rollBack();
+		
+		return $this;
+	}
+	
 	/**
 	 * Connect to the DBMS using $config
 	 *
@@ -259,11 +277,11 @@ abstract class SqlAdapter {
 	 * Set the IDFIELD
 	 *
 	 * @param string $field The new ID field.
-	 * @return \Orpheus\SqlAdapter\SqlAdapter
+	 * @return static
 	 *
 	 * Set the IDFIELD value to $field
 	 */
-	public function setIdField($field) {
+	public function setIdField($field): SqlAdapter {
 		if( $field !== null ) {
 			$this->idField = $field;
 		}
@@ -284,7 +302,7 @@ abstract class SqlAdapter {
 	 * @param array|string $fields
 	 * @return string
 	 */
-	protected function formatFieldList($fields) {
+	protected function formatFieldList($fields): string {
 		if( !is_array($fields) ) {
 			return $fields;
 		}
@@ -292,6 +310,7 @@ abstract class SqlAdapter {
 		foreach( $fields as $key => $value ) {
 			$string .= ($string ? ', ' : '') . $this->escapeIdentifier($key) . '=' . $this->formatValue($value);
 		}
+		
 		return $string;
 	}
 	
@@ -308,7 +327,7 @@ abstract class SqlAdapter {
 	}
 	
 	/**
-	 * Get an unique instance of SqlAdapter by its name
+	 * Get a unique instance of SqlAdapter by its name
 	 *
 	 * @param string $name Name of the instance, default value is "default"
 	 * @return Orpheus\SqlAdapter\SqlAdapter
@@ -349,6 +368,7 @@ abstract class SqlAdapter {
 			throw new SqlException('Database configuration with name "' . $name . '" requires an unknown driver "' . $config['driver'] . '".', 'Loading configuration');
 		}
 		
+		/** @var SqlAdapter $adapterClass */
 		$adapterClass = static::$adapters[$config['driver']];
 		return new $adapterClass($name, $config);
 		
