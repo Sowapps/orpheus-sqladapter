@@ -50,7 +50,7 @@ abstract class SqlRequest {
 	 * @param string $idField
 	 * @param string $class
 	 */
-	protected function __construct(SqlAdapter $sqlAdapter, string $idField, ?string $class = null) {
+	public function __construct(SqlAdapter $sqlAdapter, string $idField, ?string $class = null) {
 		$this->setSqlAdapter($sqlAdapter);
 		$this->setIDField($idField);
 		$this->class = $class;
@@ -215,19 +215,6 @@ abstract class SqlRequest {
 	 */
 	public function escapeValue($value): string {
 		return $this->sqlAdapter->escapeValue($value);
-	}
-	
-	/**
-	 * Create a select request
-	 *
-	 * @param SqlAdapter $sqlAdapter
-	 * @param string $idField The ID field
-	 * @param string|null $class The class used to instantiate entries
-	 * @return SqlSelectRequest
-	 * @deprecated Seems not used, there are other ways to do
-	 */
-	public static function select(SqlAdapter $sqlAdapter, string $idField = 'id', ?string $class = null): SqlSelectRequest {
-		return new SqlSelectRequest($sqlAdapter, $idField, $class);
 	}
 	
 }

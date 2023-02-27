@@ -108,6 +108,9 @@ abstract class SqlAdapter {
 		}
 	}
 	
+	/**
+	 * @warning Unsupported by MyISAM which is the default and only supported engine for now
+	 */
 	public function startTransaction(): SqlAdapter {
 		$this->pdo->beginTransaction();
 		
