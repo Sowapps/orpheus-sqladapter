@@ -9,16 +9,16 @@
   ],
   "autoload": {
 	"psr-4": {
-	  "Orpheus\\": "src"
+	  "Orpheus\\": "src/"
 	},
 	"files": [
 	  "src/_loader.php"
 	]
   },
   "require": {
-	"orpheus/orpheus-core": "1.*",
-	"orpheus/orpheus-cache": "1.*",
-	"ext-pdo": "*"
+	  "orpheus/orpheus-core": "2.*",
+	  "orpheus/orpheus-cache": "2.*",
+	  "ext-pdo": "*"
   },
   "type": "library",
   "license": "MIT",

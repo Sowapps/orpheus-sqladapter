@@ -29,7 +29,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	/**
 	 * The current fetch statement
 	 *
-	 * @var PDOStatement
+	 * @var PDOStatement|null
 	 */
 	protected ?PDOStatement $fetchLastStatement = null;
 	
@@ -52,7 +52,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 *
 	 * @var mixed
 	 */
-	protected $currentRow = null;
+	protected mixed $currentRow = null;
 	
 	/**
 	 * The filter list
@@ -100,7 +100,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * @param string|string[] $fields
 	 * @return mixed|$this
 	 */
-	public function fields($fields = null) {
+	public function fields($fields = null): mixed {
 		return $this->sget('what', $fields);
 	}
 	
@@ -112,8 +112,8 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 *
 	 * The current field list must be a string
 	 */
-	public function addField(string $field) {
-		return $this->sget('what', $this->get('what', '*') . ',' . $field);
+	public function addField(string $field): static {
+		return $this->set('what', $this->get('what', '*') . ',' . $field);
 	}
 	
 	/**
@@ -122,7 +122,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * @param string|array|null $condition
 	 * @return array|static
 	 */
-	public function having($condition = null) {
+	public function having($condition = null): array|static {
 		$having = $this->get('having', []);
 		if( !$condition ) {
 			return $having;
@@ -147,11 +147,11 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * @param bool $escapeValue
 	 * @return static
 	 */
-	public function where($condition, $operator = null, $value = null, $escapeValue = true) {
+	public function where($condition, $operator = null, $value = null, $escapeValue = true): static {
 		$where = $this->get('where', []);
 		$where[] = $this->formatCondition($condition, $operator, $value, $escapeValue);
 		
-		return $this->sget('where', $where);
+		return $this->set('where', $where);
 	}
 	
 	/**
@@ -161,7 +161,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * @param bool $escapeValue Should the value be escaped ?
 	 * @return string
 	 */
-	public function formatCondition($condition, $operator, $value, bool $escapeValue = true) {
+	public function formatCondition($condition, $operator, $value, bool $escapeValue = true): string {
 		if( is_array($condition) ) {
 			if( $condition && is_array($condition[0]) ) {
 				// Array of array => Multiple conditions, we use the OR operator
@@ -214,61 +214,65 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	/**
 	 * Set/Get the order by filter
 	 *
-	 * @param string $fields
+	 * @param string|null $fields
 	 * @return mixed|SqlSelectRequest
 	 */
-	public function orderBy($fields = null) {
+	public function orderBy(?string $fields = null): mixed {
 		return $this->sget('orderby', $fields);
 	}
 	
 	/**
 	 * Set/Get the group by filter
 	 *
-	 * @param string $field
+	 * @param string|null $field
 	 * @return mixed|SqlSelectRequest
 	 */
-	public function groupBy(?string $field = null) {
+	public function groupBy(?string $field = null): mixed {
 		return $this->sget('groupby', $field);
 	}
 	
 	/**
 	 * Set/Get the number of expected result (as limit)
 	 *
-	 * @param int $number
+	 * @param int|null $number
 	 * @return mixed|SqlSelectRequest
 	 */
-	public function number(?int $number = null) {
+	public function number(?int $number = null): mixed {
 		return $this->maxRows($number);
 	}
 	
 	/**
 	 * Set/Get the number of expected result (as limit)
 	 *
-	 * @param int $number
+	 * @param int|null $number
 	 * @return mixed|SqlSelectRequest
 	 */
-	public function maxRows(?int $number = null) {
+	public function maxRows(?int $number = null): mixed {
 		return $this->sget('number', $number);
 	}
 	
 	/**
 	 * Set/Get the offset from which we are getting results
 	 *
-	 * @param int $offset
+	 * @param int|null $offset
 	 * @return mixed|$this
 	 */
-	public function fromOffset(?int $offset = null) {
+	public function fromOffset(?int $offset = null): mixed {
 		return $this->sget('offset', $offset);
 	}
 	
 	/**
 	 * Add a join condition to this query
 	 *
-	 * @param string|PermanentObject $join
+	 * @param PermanentObject|string $entity
+	 * @param string|null $alias
+	 * @param string|null $byMyField
+	 * @param string|null $byTheirField
+	 * @param bool $mandatory
 	 * @return $this
 	 * @throws Exception
 	 */
-	public function join($entity, &$alias = null, $byMyField = null, $byTheirField = null, $mandatory = false) {
+	public function join(PermanentObject|string $entity, ?string &$alias = null, ?string $byMyField = null, ?string $byTheirField = null, bool $mandatory = false): static {
 		$joins = $this->get('join', []);
 		if( is_string($entity) && func_num_args() === 1 ) {
 			// Raw join string
@@ -300,7 +304,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 			];
 		}
 		
-		return $this->sget('join', $joins);
+		return $this->set('join', $joins);
 	}
 	
 	/**
@@ -313,10 +317,10 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	}
 	
 	/**
-	 * @param string $alias
+	 * @param string|null $alias
 	 * @return mixed|$this
 	 */
-	public function alias(string $alias) {
+	public function alias(?string $alias = null): mixed {
 		return $this->sget('alias', $alias);
 	}
 	
@@ -346,7 +350,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * @param bool|null $isDistinct
 	 * @return mixed|$this
 	 */
-	public function distinct(?bool $isDistinct = null) {
+	public function distinct(?bool $isDistinct = null): mixed {
 		return $this->sget('distinct', $isDistinct);
 	}
 	
@@ -419,7 +423,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * {@inheritDoc}
 	 * @see Iterator::current()
 	 */
-	public function current() {
+	public function current(): mixed {
 		return $this->currentRow;
 	}
 	
@@ -427,7 +431,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * {@inheritDoc}
 	 * @see Iterator::key()
 	 */
-	public function key() {
+	public function key(): mixed {
 		return $this->currentIndex;
 	}
 	
@@ -443,7 +447,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * {@inheritDoc}
 	 * @see Iterator::rewind()
 	 */
-	public function rewind() {
+	public function rewind(): void {
 		$this->currentIndex = -1;
 		$this->currentRow = null;
 		$this->next();
@@ -453,7 +457,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * {@inheritDoc}
 	 * @see Iterator::next()
 	 */
-	public function next() {
+	public function next(): void {
 		do {
 			$this->currentRow = $this->fetch();
 			// Pass the filtered rows
@@ -470,7 +474,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	 * Query one time the DBMS and fetch result for next calls
 	 * This feature is made for common used else it may have an unexpected behavior
 	 */
-	public function fetch() {
+	public function fetch(): mixed {
 		if( !$this->fetchLastStatement ) {
 			$this->startFetching();
 		}
@@ -490,7 +494,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 	
 	/**
 	 * {@inheritDoc}
-	 * @see \Orpheus\SqlRequest\SqlRequest::run()
+	 * @see SqlRequest::run()
 	 */
 	public function run() {
 		$options = $this->parameters;
@@ -548,7 +552,7 @@ class SqlSelectRequest extends SqlRequest implements Iterator {
 		return true;
 	}
 	
-	protected function startFetching() {
+	protected function startFetching(): void {
 		$this->fetchIsObject = $this->get('output', SqlAdapter::ARR_OBJECTS) === SqlAdapter::ARR_OBJECTS;
 		$this->set('output', SqlAdapter::STATEMENT);
 		$this->fetchLastStatement = $this->run();
