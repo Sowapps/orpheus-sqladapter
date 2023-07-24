@@ -16,8 +16,8 @@
 	]
   },
   "require": {
-	  "orpheus/orpheus-core": "2.*",
-	  "orpheus/orpheus-cache": "2.*",
+	  "orpheus/orpheus-core": "4.*",
+	  "orpheus/orpheus-cache": "4.*",
 	  "ext-pdo": "*"
   },
   "type": "library",
