@@ -5,7 +5,6 @@
 
 namespace Orpheus\SqlAdapter\Exception;
 
-use Exception;
 use PDOException;
 use RuntimeException;
 
@@ -25,20 +24,14 @@ class SqlException extends RuntimeException {
 	
 	/**
 	 * Constructor
-	 *
-	 * @param string $message
-	 * @param string $action
-	 * @param PDOException $original
 	 */
-	public function __construct($message = null, $action = null, $original = null) {
+	public function __construct(?string $message = null, ?string $action = null, ?PDOException $original = null) {
 		parent::__construct($message, 0, $original);
 		$this->action = $action;
 	}
 	
 	/**
 	 * Get the action
-	 *
-	 * @return ?string
 	 */
 	public function getAction(): ?string {
 		return $this->action;
@@ -46,8 +39,6 @@ class SqlException extends RuntimeException {
 	
 	/**
 	 * Get the exception as report
-	 *
-	 * @return string
 	 */
 	public function getReport(): string {
 		return $this->getText();
@@ -55,29 +46,13 @@ class SqlException extends RuntimeException {
 	
 	/**
 	 * Get the exception as report
-	 *
-	 * @return string
 	 */
 	public function getText(): string {
 		return $this->getMessage();
 	}
 	
-	/**
-	 *
-	 * {@inheritDoc}
-	 * @see Exception::__toString()
-	 */
-	public function __toString() {
-		try {
-			return $this->getText();
-		} catch( Exception $e ) {
-			if( ERROR_LEVEL === DEV_LEVEL ) {
-				die('A fatal error occurred in UserException::__toString() :<br />' . $e->getMessage());
-			}
-			die('A fatal error occurred, please report it to an admin.<br />Une erreur fatale est survenue, veuillez contacter un administrateur.<br />');
-		}
-		
-		return '';
+	public function __toString(): string {
+		return $this->getText();
 	}
 	
 }

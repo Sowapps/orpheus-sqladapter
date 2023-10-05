@@ -10,14 +10,11 @@
   "autoload": {
 	"psr-4": {
 	  "Orpheus\\": "src/"
-	},
-	"files": [
-	  "src/_loader.php"
-	]
+	}
   },
   "require": {
-	  "orpheus/orpheus-core": "4.*",
-	  "orpheus/orpheus-cache": "4.*",
+	  "orpheus/orpheus-core": "^4.0.0",
+	  "orpheus/orpheus-cache": "^4.0.0",
 	  "ext-pdo": "*"
   },
   "type": "library",
@@ -26,7 +23,7 @@
 	{
 	  "name": "Florent HAZARD",
 	  "email": "contact@sowapps.com",
-	  "homepage": "http://sowapps.com",
+		"homepage": "https://sowapps.com",
 	  "role": "Developer"
 	}
   ]

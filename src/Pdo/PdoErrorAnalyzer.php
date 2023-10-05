@@ -6,30 +6,25 @@
 namespace Orpheus\Pdo;
 
 use Exception;
+use Orpheus\SqlAdapter\Exception\SqlException;
 use PDOException;
 
 abstract class PdoErrorAnalyzer {
 	
 	const CODE_UNKNOWN_DATABASE = 'unknownDatabase';
 	
-	protected static $codes = [];
+	protected static array $codes = [];
 	
-	/** @var PDOException */
-	protected $exception;
+	protected PDOException $exception;
 	
-	/** @var string */
-	protected $state;
+	protected string $state;
 	
-	/** @var int */
-	protected $code;
+	protected int $code;
 	
-	/** @var string */
-	protected $message;
+	protected string $message;
 	
 	/**
 	 * PdoErrorAnalyzer constructor
-	 *
-	 * @param PDOException $exception
 	 */
 	protected function __construct(PDOException $exception) {
 		$this->exception = $exception;
@@ -38,55 +33,33 @@ abstract class PdoErrorAnalyzer {
 	
 	protected abstract function parse(PDOException $exception);
 	
-	/**
-	 * @return string
-	 */
-	public function getCodeReference() {
-		return isset(static::$codes[$this->code]) ? static::$codes[$this->code] : null;
+	public function getCodeReference(): ?string {
+		return static::$codes[$this->code] ?? null;
 	}
 	
-	/**
-	 * @return PDOException
-	 */
-	public function getException() {
+	public function getException(): PDOException {
 		return $this->exception;
 	}
 	
-	/**
-	 * @return int
-	 */
-	public function getCode() {
+	public function getCode(): int {
 		return $this->code;
 	}
 	
-	/**
-	 * @return string
-	 */
-	public function getMessage() {
+	public function getMessage(): string {
 		return $this->message;
 	}
 	
-	public static function from(Exception $exception) {
+	public static function from(Exception $exception): static {
 		return new static($exception instanceof PDOException ? $exception : $exception->getPrevious());
 	}
 	
-	/**
-	 * @param Exception $exception
-	 * @param null $driver
-	 * @return PdoMysqlErrorAnalyzer|static
-	 */
-	public static function fromDriver(Exception $exception, $driver = null) {
+	public static function fromDriver(Exception $exception, ?string $driver = null): static {
 		$exception = $exception instanceof PDOException ? $exception : $exception->getPrevious();
-		switch( $driver ) {
-			case 'mysql':
-				return new PdoMysqlErrorAnalyzer($exception);
-				break;
-			default:
-				throw new Exception(sprintf('Unknown driver %s', $driver));
-				break;
-		}
 		
-		return new static();
+		return match ($driver) {
+			'mysql' => new static($exception),
+			default => throw new SqlException(sprintf('Unknown driver %s', $driver), 'Getting driver'),
+		};
 	}
 	
 }

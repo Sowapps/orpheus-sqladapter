@@ -5,7 +5,8 @@
 
 namespace Orpheus\Pdo;
 
-use PDO;
+use Orpheus\SqlAdapter\Exception\SqlException;
+use Orpheus\SqlAdapter\AbstractSqlAdapter;
 
 class PdoMySqlPermissionAnalyzer extends PdoPermissionAnalyzer {
 	
@@ -17,45 +18,33 @@ class PdoMySqlPermissionAnalyzer extends PdoPermissionAnalyzer {
 	
 	const RIGHT_CREATE = 'create';
 	
-	/** @var array */
-	protected static $knownRights = [
+	protected static array $knownRights = [
 		'CREATE' => self::RIGHT_CREATE,
 	];
 	
-	/** @var array */
-	protected $permissions;
+	protected array $permissions;
 	
 	/**
 	 * PdoMySqlPermissionAnalyzer constructor
-	 *
-	 * @param array $permissions
 	 */
 	public function __construct(array $permissions) {
 		$this->permissions = $permissions;
 	}
 	
 	public function canDatabaseCreate(): bool {
-		return $this->hasPermission(self::LEVEL_GLOBAL, null, self::RIGHT_CREATE);
+		// self::LEVEL_GLOBAL, null, self::RIGHT_CREATE
+		return $this->hasPermission();
 	}
 	
-	/**
-	 * TODO Implement this method
-	 *
-	 * @param $level
-	 * @param $object
-	 * @param $right
-	 */
-	public function hasPermission($level, $object, $right): bool {
+	public function hasPermission(): bool {
+		// TODO Implement this method
+		// $level, $object, $right
 		return true;
 	}
 	
-	/**
-	 * @param object $settings
-	 * @return PdoMySqlPermissionAnalyzer|static
-	 */
-	public static function fromSettings(array $settings) {
-		$pdo = pdo_connect($settings, false);
-		$statement = $pdo->query('SHOW GRANTS FOR CURRENT_USER;', PDO::FETCH_NUM);
+	public static function fromSqlAdapter(AbstractSqlAdapter $sqlAdapter): PdoPermissionAnalyzer {
+		$statement = $sqlAdapter->query('SHOW GRANTS FOR CURRENT_USER;', AbstractSqlAdapter::QUERY_FETCH_ALL);
+		// TODO Require more tests !
 		$permissions = [];
 		while( $row = $statement->fetch() ) {
 			$permissions[] = self::parseGrant($row[0]);
@@ -64,9 +53,9 @@ class PdoMySqlPermissionAnalyzer extends PdoPermissionAnalyzer {
 		return new static($permissions);
 	}
 	
-	public static function parseGrant($grant) {
+	public static function parseGrant(string $grant): object {
 		if( !preg_match('#GRANT (.+) ON `?([^`]+)`?\.`?(.+)`? TO .+#i', $grant, $values) ) {
-			throw new Exception('Unable to parse MySql grant');
+			throw new SqlException('Unable to parse MySql grant', 'Parsing grant string');
 		}
 		
 		return (object) [

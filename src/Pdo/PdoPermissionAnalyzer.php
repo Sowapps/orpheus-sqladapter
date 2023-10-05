@@ -5,21 +5,18 @@
 
 namespace Orpheus\Pdo;
 
+use Orpheus\SqlAdapter\Exception\SqlException;
+use Orpheus\SqlAdapter\AbstractSqlAdapter;
+
 abstract class PdoPermissionAnalyzer {
 	
 	public abstract function canDatabaseCreate();
 	
-	/**
-	 * @param array $settings
-	 * @return PdoMySqlPermissionAnalyzer
-	 */
-	public static function fromSettings(array $settings) {
-		switch( $settings['driver'] ) {
-			case 'mysql':
-				return PdoMySqlPermissionAnalyzer::fromSettings($settings);
-				break;
-		}
-		throw new Exception(sprintf('Unknown driver %s', $settings['driver']));
+	public static function fromSqlAdapter(AbstractSqlAdapter $sqlAdapter): PdoPermissionAnalyzer {
+		return match ($sqlAdapter::getDriver()) {
+			'mysql' => PdoMySqlPermissionAnalyzer::fromSqlAdapter($sqlAdapter),
+			default => throw new SqlException(sprintf('Unknown driver %s', $sqlAdapter::getDriver()), 'Analyzing permissions'),
+		};
 	}
 	
 }

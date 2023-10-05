@@ -1,11 +1,12 @@
 <?php
 /**
- * SqlAdapterMySQL
+ * @author Florent HAZARD <f.hazard@sowapps.com>
  */
 
-namespace Orpheus\SqlAdapter;
+namespace Orpheus\SqlAdapter\Adapter;
 
 use Exception;
+use Orpheus\SqlAdapter\AbstractSqlAdapter;
 use PDO;
 
 /**
@@ -13,7 +14,7 @@ use PDO;
  *
  * This class is the sql adapter for MySQL.
  */
-class SqlAdapterMySql extends SqlAdapter {
+class MySqlAdapter extends AbstractSqlAdapter {
 	
 	/**
 	 * Select defaults options
@@ -23,12 +24,12 @@ class SqlAdapterMySql extends SqlAdapter {
 	protected static array $selectDefaults = [
 		'what'     => '',// table.* => All fields
 		'join'     => '',// No join
-		'where'    => '',// Additionnal Whereclause
+		'where'  => '',// Additional Whereclause
 		'orderby'  => '',// Ex: Field1 ASC, Field2 DESC
 		'groupby'  => '',// Ex: Field
 		'number'   => -1,// -1 => All
 		'offset'   => 0,// 0 => The start
-		'output'   => SqlAdapter::ARR_ASSOC,// Associative Array
+		'output' => AbstractSqlAdapter::RETURN_ARRAY_ASSOC,// Associative Array
 		'alias'    => null,// No alias
 		'distinct' => null,// No remove of duplicates
 	];
@@ -41,11 +42,11 @@ class SqlAdapterMySql extends SqlAdapter {
 	protected static array $updateDefaults = [
 		'lowpriority' => false,//false => Not low priority
 		'ignore'      => false,//false => Not ignore errors
-		'where'       => '',//Additionnal Whereclause
+		'where'  => '',//Additional Whereclause
 		'orderby'     => '',//Ex: Field1 ASC, Field2 DESC
 		'number'      => -1,//-1 => All
 		'offset'      => 0,//0 => The start
-		'output'      => SqlAdapter::NUMBER,//Number of updated lines
+		'output' => AbstractSqlAdapter::NUMBER,//Number of updated lines
 	];
 	
 	/**
@@ -57,11 +58,11 @@ class SqlAdapterMySql extends SqlAdapter {
 		'lowpriority' => false,//false => Not low priority
 		'quick'       => false,//false => Not merge index leaves
 		'ignore'      => false,//false => Not ignore errors
-		'where'       => '',//Additionnal Whereclause
+		'where'  => '',//Additional Whereclause
 		'orderby'     => '',//Ex: Field1 ASC, Field2 DESC
 		'number'      => -1,//-1 => All
 		'offset'      => 0,//0 => The start
-		'output'      => SqlAdapter::NUMBER,//Number of deleted lines
+		'output' => AbstractSqlAdapter::NUMBER,//Number of deleted lines
 	];
 	
 	/**
@@ -74,33 +75,31 @@ class SqlAdapterMySql extends SqlAdapter {
 		'delayed'     => false,//false => Not delayed
 		'ignore'      => false,//false => Not ignore errors
 		'into'        => true,//true => INSERT INTO
-		'output'      => SqlAdapter::NUMBER,//Number of inserted lines
+		'output' => AbstractSqlAdapter::NUMBER,//Number of inserted lines
 	];
 	
 	/**
-	 * Select something from database
+	 * Select data from tables in database
 	 *
 	 * @param array $options The options used to build the query.
 	 * @return mixed Mixed return, depending on the 'output' option.
 	 * @throws Exception
 	 * @see http://dev.mysql.com/doc/refman/5.0/en/select.html
-	 *
-	 * Using pdo_query(), It parses the query from an array to a SELECT query.
 	 */
-	public function select(array $options = []) {
+	public function select(array $options = []): mixed {
 		$options += self::$selectDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
 		}
 		$output = intval($options['output']);
-		if( !$options['number'] && $output === static::ARR_FIRST ) {
+		if( $output === static::RETURN_ARRAY_FIRST ) {
 			$options['number'] = 1;
 		}
-		$isFromTable = $options['table'][0] != '(';
+		$isFromTable = $options['table'][0] !== '(';
 		$TABLE = $isFromTable ? $this->escapeIdentifier($options['table']) : $options['table'];
 		// Auto-satisfy join queries
 		if( empty($options['what']) ) {
-			$options['what'] = $isFromTable ? (!empty($options['alias']) ? $options['alias'] : $TABLE) . '.*' : '*';
+			$options['what'] = $isFromTable ? ($options['alias'] ?: $TABLE) . '.*' : '*';
 		} elseif( is_array($options['what']) ) {
 			$options['what'] = implode(', ', $options['what']);
 		}
@@ -119,34 +118,24 @@ class SqlAdapterMySql extends SqlAdapter {
 		if( $output === static::SQL_QUERY ) {
 			return $QUERY;
 		}
-		$results = $this->query($QUERY, ($output === static::STATEMENT) ? PDOSTMT : PDOFETCHALL);
+		$results = $this->query($QUERY, ($output === static::STATEMENT) ? AbstractSqlAdapter::QUERY_STATEMENT : AbstractSqlAdapter::QUERY_FETCH_ALL);
 		if( $output === static::ARR_OBJECTS ) {
 			foreach( $results as &$r ) {
 				$r = (object) $r;//stdClass
 			}
 		}
 		
-		return (!empty($results) && $output === static::ARR_FIRST) ? $results[0] : $results;
+		return ($results && $output === static::RETURN_ARRAY_FIRST) ? $results[0] : $results;
 	}
 	
-	/**
-	 *
-	 * {@inheritDoc}
-	 * @param string $identifier The identifier to escape
-	 * @see \Orpheus\SqlAdapter\SqlAdapter::escapeIdentifier()
-	 *
-	 */
-	public function escapeIdentifier($identifier): string {
+	public function escapeIdentifier(string $identifier): string {
 		return '`' . str_replace('.', '`.`', $identifier) . '`';
 	}
 	
 	/**
 	 * Parse join option to generate join
-	 *
-	 * @param $options
-	 * @return array|string
 	 */
-	protected function parseJoin($options) {
+	protected function parseJoin($options): string {
 		$joinList = $options['join'];
 		if( is_object($joinList) ) {
 			$joinList = [$joinList];
@@ -194,8 +183,7 @@ class SqlAdapterMySql extends SqlAdapter {
 		if( empty($options['what']) ) {
 			throw new Exception('No field');
 		}
-		$OPTIONS = '';
-		$OPTIONS .= (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : '';
+		$OPTIONS = (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : '';
 		$OPTIONS .= (!empty($options['ignore'])) ? ' IGNORE' : '';
 		
 		$WHAT = $this->formatFieldList($options['what']);
@@ -206,11 +194,11 @@ class SqlAdapterMySql extends SqlAdapter {
 		$TABLE = static::escapeIdentifier($options['table']);
 		
 		$QUERY = "UPDATE {$OPTIONS} {$TABLE} SET {$WHAT} {$WC} {$ORDER_BY} {$LIMIT}";
-		if( $options['output'] == static::SQL_QUERY ) {
+		if( $options['output'] === static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		
-		return $this->query($QUERY, PDOEXEC);
+		return $this->query($QUERY, AbstractSqlAdapter::PROCESS_EXEC);
 	}
 	
 	/**
@@ -223,7 +211,7 @@ class SqlAdapterMySql extends SqlAdapter {
 	 * Accept only the String syntax for what option.
 	 * @throws Exception
 	 */
-	public function insert(array $options = []): int {
+	public function insert(array $options = []): mixed {
 		$options += self::$insertDefaults;
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
@@ -231,10 +219,9 @@ class SqlAdapterMySql extends SqlAdapter {
 		if( empty($options['what']) ) {
 			throw new Exception('No field');
 		}
-		$OPTIONS = '';
-		$OPTIONS .= (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : (!empty($options['delayed']) ? ' DELAYED' : '');
-		$OPTIONS .= (!empty($options['ignore'])) ? ' IGNORE' : '';
-		$OPTIONS .= (!empty($options['into'])) ? ' INTO' : '';
+		$queryOptions = (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : (!empty($options['delayed']) ? ' DELAYED' : '');
+		$queryOptions .= (!empty($options['ignore'])) ? ' IGNORE' : '';
+		$queryOptions .= (!empty($options['into'])) ? ' INTO' : '';
 		
 		$COLS = $WHAT = '';
 		//Is an array
@@ -258,12 +245,12 @@ class SqlAdapterMySql extends SqlAdapter {
 		}
 		$TABLE = static::escapeIdentifier($options['table']);
 		
-		$QUERY = "INSERT {$OPTIONS} {$TABLE} {$COLS} {$WHAT}";
-		if( $options['output'] == static::SQL_QUERY ) {
+		$QUERY = "INSERT {$queryOptions} {$TABLE} {$COLS} {$WHAT}";
+		if( $options['output'] === static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		
-		return $this->query($QUERY, PDOEXEC);
+		return $this->query($QUERY, AbstractSqlAdapter::PROCESS_EXEC);
 	}
 	
 	/**
@@ -280,8 +267,7 @@ class SqlAdapterMySql extends SqlAdapter {
 		if( empty($options['table']) ) {
 			throw new Exception('Empty table option');
 		}
-		$OPTIONS = '';
-		$OPTIONS .= (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : '';
+		$OPTIONS = (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : '';
 		$OPTIONS .= (!empty($options['quick'])) ? ' QUICK' : '';
 		$OPTIONS .= (!empty($options['ignore'])) ? ' IGNORE' : '';
 		$WC = (!empty($options['where'])) ? 'WHERE ' . $options['where'] : '';
@@ -291,33 +277,26 @@ class SqlAdapterMySql extends SqlAdapter {
 		$TABLE = static::escapeIdentifier($options['table']);
 		
 		$QUERY = "DELETE {$OPTIONS} FROM {$TABLE} {$WC} {$ORDER_BY} {$LIMIT}";
-		if( $options['output'] == static::SQL_QUERY ) {
+		if( $options['output'] === static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		
-		return $this->query($QUERY, PDOEXEC);
+		return $this->query($QUERY, AbstractSqlAdapter::PROCESS_EXEC);
 	}
 	
 	/**
 	 * Get the last inserted ID
+	 * It requires a successful call of insert() !
 	 *
 	 * @param string $table The table to get the last inserted id.
-	 * @return mixed The last inserted id value.
-	 *
-	 * It requires a successful call of insert() !
+	 * @return string|null The last inserted id value.
 	 */
-	public function lastId($table) {
-		return $this->query('SELECT LAST_INSERT_ID();', PDOFETCHFIRSTCOL);
+	public function lastId(string $table): ?string {
+		return $this->query('SELECT LAST_INSERT_ID();', AbstractSqlAdapter::FETCH_FIRST_COLUMN);
 	}
 	
-	/**
-	 *
-	 * {@inheritDoc}
-	 * @param array $config
-	 * @see \Orpheus\SqlAdapter\SqlAdapter::connect()
-	 *
-	 */
-	protected function connect(array $config) {
+	protected function connect(): void {
+		$config = $this->config;
 		$this->pdo = new PDO(
 			"mysql:dbname={$config['dbname']};host={$config['host']}" . (!empty($config['port']) ? ';port=' . $config['port'] : ''),
 			$config['user'], $config['passwd'],
@@ -328,10 +307,8 @@ class SqlAdapterMySql extends SqlAdapter {
 	
 	/**
 	 * Get the driven string
-	 *
-	 * @return string
 	 */
-	public static function getDriver() {
+	public static function getDriver(): string {
 		return 'mysql';
 	}
 	
