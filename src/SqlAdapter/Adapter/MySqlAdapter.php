@@ -106,15 +106,15 @@ class MySqlAdapter extends AbstractSqlAdapter {
 		$WHAT = $options['what'];
 		$DISTINCT = $options['distinct'] ? 'DISTINCT' : '';
 		$ALIAS = !empty($options['alias']) ? $options['alias'] : '';
-		$WC = $options['where'] ? 'WHERE ' . (is_array($options['where']) ? implode(' AND ', $options['where']) : $options['where']) : '';
-		$GROUPBY = !empty($options['groupby']) ? 'GROUP BY ' . $options['groupby'] : '';
-		$ORDERBY = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
+		$where = $this->formatWhere($options['where']);
+		$groupBy = !empty($options['groupby']) ? 'GROUP BY ' . $options['groupby'] : '';
+		$orderBy = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
 		$HAVING = !empty($options['having']) ? 'HAVING ' . (is_array($options['having']) ? implode(' AND ', $options['having']) : $options['where']) : '';
 		$LIMIT = $options['number'] > 0 ? 'LIMIT ' .
 			($options['offset'] > 0 ? $options['offset'] . ', ' : '') . $options['number'] : '';
 		$JOIN = $this->parseJoin($options);
 		
-		$QUERY = "SELECT {$DISTINCT} {$WHAT} FROM {$TABLE} {$ALIAS} {$JOIN} {$WC} {$GROUPBY} {$HAVING} {$ORDERBY} {$LIMIT}";
+		$QUERY = "SELECT {$DISTINCT} {$WHAT} FROM {$TABLE} {$ALIAS} {$JOIN} {$where} {$groupBy} {$HAVING} {$orderBy} {$LIMIT}";
 		if( $output === static::SQL_QUERY ) {
 			return $QUERY;
 		}
@@ -126,44 +126,6 @@ class MySqlAdapter extends AbstractSqlAdapter {
 		}
 		
 		return ($results && $output === static::RETURN_ARRAY_FIRST) ? $results[0] : $results;
-	}
-	
-	public function escapeIdentifier(string $identifier): string {
-		return '`' . str_replace('.', '`.`', $identifier) . '`';
-	}
-	
-	/**
-	 * Parse join option to generate join
-	 */
-	protected function parseJoin($options): string {
-		$joinList = $options['join'];
-		if( is_object($joinList) ) {
-			$joinList = [$joinList];
-		}
-		if( !is_array($joinList) ) {
-			// Join as string
-			return $joinList;
-		}
-		$joinStr = '';
-		// Array of string or array of object
-		foreach( $options['join'] as $join ) {
-			if( is_object($join) ) {
-				/**
-				 * Fields: table, alias, condition, mandatory
-				 * All are mandatories
-				 */
-				$join = sprintf(
-					'%s JOIN %s %s ON %s',
-					$join->mandatory ? 'INNER' : 'LEFT',
-					$this->escapeIdentifier($join->table),
-					$join->alias,
-					$join->condition
-				);
-			}
-			$joinStr .= ($joinStr ? ', ' : '') . $join;
-		}
-		
-		return $joinStr;
 	}
 	
 	/**
@@ -187,13 +149,13 @@ class MySqlAdapter extends AbstractSqlAdapter {
 		$OPTIONS .= (!empty($options['ignore'])) ? ' IGNORE' : '';
 		
 		$WHAT = $this->formatFieldList($options['what']);
-		$WC = !empty($options['where']) ? 'WHERE ' . $options['where'] : '';
+		$where = $this->formatWhere($options['where']);
 		$ORDER_BY = !empty($options['orderby']) ? 'ORDER BY ' . $options['orderby'] : '';
 		$LIMIT = ($options['number'] > 0) ? 'LIMIT ' .
 			(($options['offset'] > 0) ? $options['offset'] . ', ' : '') . $options['number'] : '';
 		$TABLE = static::escapeIdentifier($options['table']);
 		
-		$QUERY = "UPDATE {$OPTIONS} {$TABLE} SET {$WHAT} {$WC} {$ORDER_BY} {$LIMIT}";
+		$QUERY = "UPDATE {$OPTIONS} {$TABLE} SET {$WHAT} {$where} {$ORDER_BY} {$LIMIT}";
 		if( $options['output'] === static::SQL_QUERY ) {
 			return $QUERY;
 		}
@@ -270,18 +232,60 @@ class MySqlAdapter extends AbstractSqlAdapter {
 		$OPTIONS = (!empty($options['lowpriority'])) ? ' LOW_PRIORITY' : '';
 		$OPTIONS .= (!empty($options['quick'])) ? ' QUICK' : '';
 		$OPTIONS .= (!empty($options['ignore'])) ? ' IGNORE' : '';
-		$WC = (!empty($options['where'])) ? 'WHERE ' . $options['where'] : '';
-		$ORDER_BY = (!empty($options['orderby'])) ? 'ORDER BY ' . $options['orderby'] : '';
+		$where = $this->formatWhere($options['where']);
+		$orderBy = (!empty($options['orderby'])) ? 'ORDER BY ' . $options['orderby'] : '';
 		$LIMIT = ($options['number'] > 0) ? 'LIMIT ' .
 			(($options['offset'] > 0) ? $options['offset'] . ', ' : '') . $options['number'] : '';
 		$TABLE = static::escapeIdentifier($options['table']);
 		
-		$QUERY = "DELETE {$OPTIONS} FROM {$TABLE} {$WC} {$ORDER_BY} {$LIMIT}";
+		$QUERY = "DELETE {$OPTIONS} FROM {$TABLE} {$where} {$orderBy} {$LIMIT}";
 		if( $options['output'] === static::SQL_QUERY ) {
 			return $QUERY;
 		}
 		
 		return $this->query($QUERY, AbstractSqlAdapter::PROCESS_EXEC);
+	}
+	
+	protected function formatWhere(mixed $where): string {
+		return $where ? 'WHERE ' . (is_array($where) ? implode(' AND ', $where) : $where) : '';
+	}
+	
+	public function escapeIdentifier(string $identifier): string {
+		return '`' . str_replace('.', '`.`', $identifier) . '`';
+	}
+	
+	/**
+	 * Parse join option to generate join
+	 */
+	protected function parseJoin($options): string {
+		$joinList = $options['join'];
+		if( is_object($joinList) ) {
+			$joinList = [$joinList];
+		}
+		if( !is_array($joinList) ) {
+			// Join as string
+			return $joinList;
+		}
+		$joinStr = '';
+		// Array of string or array of object
+		foreach( $options['join'] as $join ) {
+			if( is_object($join) ) {
+				/**
+				 * Fields: table, alias, condition, mandatory
+				 * All are mandatories
+				 */
+				$join = sprintf(
+					'%s JOIN %s %s ON %s',
+					$join->mandatory ? 'INNER' : 'LEFT',
+					$this->escapeIdentifier($join->table),
+					$join->alias,
+					$join->condition
+				);
+			}
+			$joinStr .= ($joinStr ? ', ' : '') . $join;
+		}
+		
+		return $joinStr;
 	}
 	
 	/**

@@ -7,6 +7,7 @@ namespace Orpheus\SqlRequest;
 
 use DateTime;
 use Exception;
+use Orpheus\EntityDescriptor\Entity\PermanentEntity;
 use Orpheus\SqlAdapter\AbstractSqlAdapter;
 
 /**
@@ -85,6 +86,9 @@ abstract class AbstractSqlRequest {
 			}
 		}
 		if( $operator !== null ) {
+			if( $condition === 'id' ) {
+				$condition = $this->getIdField();
+			}
 			if( $value === null ) {
 				$value = $operator;
 				$operator = is_array($value) ? 'IN' : '=';
@@ -96,7 +100,7 @@ abstract class AbstractSqlRequest {
 					// Value is PHP DateTime
 					$value = sqlDatetime($value);
 					
-				} else if( is_object($value) ) {
+				} else if( $value instanceof PermanentEntity ) {
 					// Value is PermanentEntity
 					// The ID could be a string, so we have to escape it too
 					$value = id($value);
