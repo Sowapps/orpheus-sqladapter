@@ -1,2 +1,4 @@
 # orpheus-sqladapter
-SQL Adapter Library for Orpheus, Easy query to all DBMS
+SQL Adapter Library for Orpheus, query easily any DBMS.
+
+See also [Orpheus project](https://github.com/Sowapps/Orpheus).
